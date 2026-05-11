@@ -1,388 +1,691 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
-<title>Gig Work Hub</title>
-<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet">
-<style>
-  * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#0b1117" />
+  <meta name="description" content="Gig Work Hub helps delivery riders and gig drivers log shifts, kilometres, expenses, and income for CRA-ready records." />
+  <title>Gig Work Hub | Rider Logbook</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      --bg: #0b1117;
+      --surface: #111a23;
+      --surface-2: #172431;
+      --card: rgba(255, 255, 255, 0.07);
+      --line: rgba(255, 255, 255, 0.11);
+      --text: #f8fbff;
+      --muted: #9aa8b7;
+      --soft: #cad4df;
+      --green: #35d07f;
+      --lime: #b7f36b;
+      --orange: #ffb15a;
+      --blue: #56b9ff;
+      --red: #ff746f;
+      --shadow: 0 24px 80px rgba(0, 0, 0, 0.42);
+    }
 
-  body {
-    font-family: 'DM Sans', sans-serif;
-    background: #080808;
-    color: #fff;
-    min-height: 100vh;
-    max-width: 480px;
-    margin: 0 auto;
-  }
+    * {
+      box-sizing: border-box;
+    }
 
-  .accent-bar {
-    height: 3px;
-    background: linear-gradient(90deg, #1D9E75 0%, #5DCAA5 50%, transparent 100%);
-  }
+    html {
+      scroll-behavior: smooth;
+    }
 
-  header {
-    padding: 1.5rem 1.5rem 1.25rem;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    border-bottom: 0.5px solid rgba(255,255,255,0.07);
-  }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background:
+        radial-gradient(circle at 18% 8%, rgba(53, 208, 127, 0.2), transparent 22rem),
+        radial-gradient(circle at 92% 20%, rgba(86, 185, 255, 0.14), transparent 24rem),
+        linear-gradient(180deg, #0b1117 0%, #101821 54%, #091016 100%);
+      color: var(--text);
+      overflow-x: hidden;
+    }
 
-  .logo {
-    display: flex;
-    align-items: center;
-    gap: 11px;
-  }
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      background-image:
+        linear-gradient(rgba(255,255,255,0.035) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,0.035) 1px, transparent 1px);
+      background-size: 44px 44px;
+      mask-image: linear-gradient(to bottom, black 0%, transparent 72%);
+    }
 
-  .logo-mark {
-    width: 38px;
-    height: 38px;
-    background: #1D9E75;
-    border-radius: 10px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-family: 'Syne', sans-serif;
-    font-weight: 800;
-    font-size: 14px;
-    color: #fff;
-    letter-spacing: -0.5px;
-    flex-shrink: 0;
-  }
+    a {
+      color: inherit;
+      text-decoration: none;
+    }
 
-  .logo-text {
-    font-family: 'Syne', sans-serif;
-    font-weight: 700;
-    font-size: 17px;
-    color: #fff;
-    letter-spacing: -0.3px;
-    line-height: 1.2;
-  }
+    .app {
+      position: relative;
+      z-index: 1;
+      width: min(100%, 520px);
+      min-height: 100vh;
+      margin: 0 auto;
+      padding: 14px;
+    }
 
-  .logo-sub {
-    font-size: 11px;
-    color: rgba(255,255,255,0.35);
-    font-weight: 300;
-    margin-top: 1px;
-  }
+    .phone {
+      min-height: calc(100vh - 28px);
+      border: 1px solid var(--line);
+      border-radius: 32px;
+      background: rgba(11, 17, 23, 0.78);
+      box-shadow: var(--shadow);
+      overflow: hidden;
+      backdrop-filter: blur(18px);
+    }
 
-  .live-badge {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    font-size: 11px;
-    font-weight: 500;
-    color: #5DCAA5;
-    background: rgba(29,158,117,0.12);
-    border: 0.5px solid rgba(29,158,117,0.25);
-    padding: 5px 10px;
-    border-radius: 20px;
-  }
+    .topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      padding: 20px 20px 16px;
+      border-bottom: 1px solid var(--line);
+      background: rgba(255, 255, 255, 0.035);
+    }
 
-  .live-dot {
-    width: 5px;
-    height: 5px;
-    background: #1D9E75;
-    border-radius: 50%;
-    animation: pulse 2s infinite;
-  }
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      min-width: 0;
+    }
 
-  @keyframes pulse {
-    0%, 100% { opacity: 1; transform: scale(1); }
-    50% { opacity: 0.5; transform: scale(0.85); }
-  }
+    .brand-mark {
+      width: 44px;
+      height: 44px;
+      flex: 0 0 auto;
+      border-radius: 16px;
+      display: grid;
+      place-items: center;
+      color: #07120d;
+      font-weight: 900;
+      background: linear-gradient(135deg, var(--green), var(--lime));
+      box-shadow: 0 0 30px rgba(53, 208, 127, 0.35);
+    }
 
-  .hero {
-    padding: 2rem 1.5rem 1.25rem;
-  }
+    .brand-text {
+      min-width: 0;
+    }
 
-  .hero-date {
-    font-size: 11px;
-    color: rgba(255,255,255,0.25);
-    text-transform: uppercase;
-    letter-spacing: 1px;
-    font-weight: 400;
-    margin-bottom: 0.6rem;
-  }
+    .brand-text strong,
+    .hero h1,
+    .section-title,
+    .card-title {
+      letter-spacing: 0;
+    }
 
-  .hero-title {
-    font-family: 'Syne', sans-serif;
-    font-size: 34px;
-    font-weight: 800;
-    line-height: 1.08;
-    letter-spacing: -1.5px;
-    color: #fff;
-    margin-bottom: 0.6rem;
-  }
+    .brand-text strong {
+      display: block;
+      font-size: 17px;
+      line-height: 1.1;
+    }
 
-  .hero-title .green { color: #1D9E75; }
+    .brand-text span {
+      display: block;
+      margin-top: 3px;
+      color: var(--muted);
+      font-size: 12px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
 
-  .hero-sub {
-    font-size: 14px;
-    color: rgba(255,255,255,0.38);
-    font-weight: 300;
-    line-height: 1.5;
-  }
+    .cra-pill {
+      flex: 0 0 auto;
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      min-height: 34px;
+      padding: 0 11px;
+      border-radius: 999px;
+      border: 1px solid rgba(53, 208, 127, 0.28);
+      background: rgba(53, 208, 127, 0.11);
+      color: #aef7cb;
+      font-size: 12px;
+      font-weight: 800;
+    }
 
-  .section-label {
-    padding: 0 1.5rem;
-    font-size: 10px;
-    text-transform: uppercase;
-    letter-spacing: 1.2px;
-    color: rgba(255,255,255,0.2);
-    font-weight: 500;
-    margin-bottom: 0.75rem;
-    margin-top: 1.5rem;
-  }
+    .cra-pill::before {
+      content: "";
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: var(--green);
+      box-shadow: 0 0 16px var(--green);
+    }
 
-  .grid {
-    padding: 0 1.5rem;
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 8px;
-  }
+    .hero {
+      padding: 28px 20px 18px;
+    }
 
-  .btn {
-    background: #111111;
-    border: 0.5px solid rgba(255,255,255,0.07);
-    border-radius: 18px;
-    padding: 1.1rem 1.1rem 0.9rem;
-    cursor: pointer;
-    transition: background 0.15s, transform 0.15s, border-color 0.15s;
-    text-align: left;
-    text-decoration: none;
-    display: block;
-    position: relative;
-    overflow: hidden;
-  }
+    .date {
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 700;
+      text-transform: uppercase;
+    }
 
-  .btn::before {
-    content: '';
-    position: absolute;
-    top: 0; left: 0; right: 0;
-    height: 1px;
-    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.06), transparent);
-  }
+    .hero h1 {
+      margin: 12px 0 12px;
+      font-size: clamp(38px, 10vw, 58px);
+      line-height: 0.98;
+    }
 
-  .btn:hover {
-    background: #161616;
-    border-color: rgba(255,255,255,0.13);
-    transform: translateY(-2px);
-  }
+    .hero h1 span {
+      color: var(--green);
+    }
 
-  .btn:active {
-    transform: scale(0.97);
-    background: #0e0e0e;
-  }
+    .hero p {
+      margin: 0;
+      max-width: 34rem;
+      color: var(--soft);
+      font-size: 16px;
+      line-height: 1.55;
+    }
 
-  .btn-wide {
-    grid-column: 1 / -1;
-    display: flex;
-    align-items: center;
-    gap: 14px;
-    padding: 1.1rem 1.25rem;
-  }
+    .ride-strip {
+      margin: 22px 0 0;
+      border: 1px solid var(--line);
+      border-radius: 24px;
+      background:
+        linear-gradient(135deg, rgba(53, 208, 127, 0.14), transparent 48%),
+        rgba(255, 255, 255, 0.055);
+      overflow: hidden;
+    }
 
-  .btn-wide .btn-content {
-    flex: 1;
-  }
+    .road {
+      position: relative;
+      height: 94px;
+      background:
+        linear-gradient(90deg, rgba(255,255,255,0.16) 12px, transparent 12px) center / 52px 2px repeat-x,
+        linear-gradient(180deg, transparent 0 44px, rgba(255,255,255,0.12) 44px 46px, transparent 46px),
+        rgba(0, 0, 0, 0.16);
+    }
 
-  .btn-icon {
-    width: 38px;
-    height: 38px;
-    border-radius: 11px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 18px;
-    margin-bottom: 0.7rem;
-    flex-shrink: 0;
-  }
+    .rider {
+      position: absolute;
+      left: 30px;
+      top: 26px;
+      width: 86px;
+      height: 42px;
+    }
 
-  .btn-wide .btn-icon {
-    margin-bottom: 0;
-  }
+    .rider::before,
+    .rider::after {
+      content: "";
+      position: absolute;
+      bottom: 0;
+      width: 26px;
+      height: 26px;
+      border: 4px solid var(--green);
+      border-radius: 50%;
+      background: rgba(11, 17, 23, 0.9);
+    }
 
-  .ig { background: rgba(29,158,117,0.14); }
-  .ia { background: rgba(186,117,23,0.14); }
-  .ib { background: rgba(55,138,221,0.14); }
-  .ic { background: rgba(216,90,48,0.14); }
-  .ip { background: rgba(127,119,221,0.14); }
+    .rider::before {
+      left: 0;
+    }
 
-  .btn-label {
-    font-family: 'Syne', sans-serif;
-    font-size: 14px;
-    font-weight: 700;
-    color: #fff;
-    display: block;
-    margin-bottom: 3px;
-    letter-spacing: -0.2px;
-  }
+    .rider::after {
+      right: 0;
+    }
 
-  .btn-desc {
-    font-size: 11px;
-    color: rgba(255,255,255,0.3);
-    font-weight: 300;
-    line-height: 1.4;
-  }
+    .frame {
+      position: absolute;
+      left: 18px;
+      top: 10px;
+      width: 52px;
+      height: 24px;
+      border: 4px solid var(--lime);
+      border-top: 0;
+      transform: skewX(-18deg);
+      border-radius: 4px;
+    }
 
-  .btn-arrow {
-    position: absolute;
-    top: 0.9rem;
-    right: 1rem;
-    font-size: 13px;
-    color: rgba(255,255,255,0.15);
-    transition: color 0.15s, transform 0.15s;
-    font-weight: 300;
-  }
+    .box {
+      position: absolute;
+      right: 4px;
+      top: 0;
+      width: 26px;
+      height: 22px;
+      border-radius: 7px;
+      background: var(--orange);
+      box-shadow: 0 10px 24px rgba(255, 177, 90, 0.25);
+    }
 
-  .btn:hover .btn-arrow {
-    color: rgba(255,255,255,0.4);
-    transform: translate(2px, -2px);
-  }
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      border-top: 1px solid var(--line);
+    }
 
-  .btn-wide .btn-arrow {
-    position: static;
-    margin-left: auto;
-    font-size: 16px;
-    flex-shrink: 0;
-  }
+    .stat {
+      padding: 14px 12px;
+      border-right: 1px solid var(--line);
+    }
 
-  .divider {
-    margin: 1.75rem 1.5rem 0;
-    border: none;
-    border-top: 0.5px solid rgba(255,255,255,0.05);
-  }
+    .stat:last-child {
+      border-right: 0;
+    }
 
-  footer {
-    padding: 1rem 1.5rem 2rem;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-  }
+    .stat strong {
+      display: block;
+      font-size: 18px;
+      line-height: 1.2;
+    }
 
-  .footer-text {
-    font-size: 11px;
-    color: rgba(255,255,255,0.15);
-    font-weight: 300;
-  }
+    .stat span {
+      display: block;
+      margin-top: 3px;
+      color: var(--muted);
+      font-size: 11px;
+      line-height: 1.35;
+    }
 
-  .footer-cra {
-    font-size: 10px;
-    color: rgba(29,158,117,0.6);
-    font-weight: 500;
-    letter-spacing: 0.3px;
-  }
+    .section {
+      padding: 18px 20px 4px;
+    }
 
-  /* Stagger animation on load */
-  .btn {
-    opacity: 0;
-    transform: translateY(12px);
-    animation: fadeUp 0.4s forwards;
-  }
-  .btn:nth-child(1) { animation-delay: 0.05s; }
-  .btn:nth-child(2) { animation-delay: 0.1s; }
-  .btn:nth-child(3) { animation-delay: 0.15s; }
-  .btn:nth-child(4) { animation-delay: 0.2s; }
-  .btn:nth-child(5) { animation-delay: 0.25s; }
+    .section-title {
+      margin: 0 0 12px;
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 900;
+      text-transform: uppercase;
+    }
 
-  @keyframes fadeUp {
-    to { opacity: 1; transform: translateY(0); }
-  }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px;
+    }
 
-  .hero-title, header {
-    opacity: 0;
-    animation: fadeUp 0.5s 0.02s forwards;
-  }
-</style>
+    .action-card {
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      min-height: 152px;
+      padding: 16px;
+      border: 1px solid var(--line);
+      border-radius: 22px;
+      background:
+        linear-gradient(180deg, rgba(255,255,255,0.075), rgba(255,255,255,0.035)),
+        var(--surface);
+      overflow: hidden;
+      transition: transform 160ms ease, border-color 160ms ease, background 160ms ease;
+    }
+
+    .action-card::after {
+      content: "";
+      position: absolute;
+      top: 14px;
+      right: 14px;
+      width: 8px;
+      height: 8px;
+      border-top: 2px solid rgba(255,255,255,0.45);
+      border-right: 2px solid rgba(255,255,255,0.45);
+      transform: rotate(45deg);
+    }
+
+    .action-card:hover {
+      transform: translateY(-2px);
+      border-color: rgba(53, 208, 127, 0.4);
+      background:
+        linear-gradient(180deg, rgba(255,255,255,0.095), rgba(255,255,255,0.045)),
+        var(--surface-2);
+    }
+
+    .action-card:active {
+      transform: scale(0.98);
+    }
+
+    .action-card.wide {
+      grid-column: 1 / -1;
+      min-height: 126px;
+      flex-direction: row;
+      align-items: center;
+      gap: 15px;
+    }
+
+    .card-icon {
+      width: 44px;
+      height: 44px;
+      flex: 0 0 auto;
+      display: grid;
+      place-items: center;
+      margin-bottom: 18px;
+      border-radius: 15px;
+      color: #07120d;
+      font-weight: 900;
+      background: var(--green);
+    }
+
+    .action-card.wide .card-icon {
+      margin-bottom: 0;
+    }
+
+    .card-icon.finish {
+      background: var(--orange);
+    }
+
+    .card-icon.fuel {
+      background: var(--blue);
+    }
+
+    .card-icon.repair {
+      background: var(--red);
+    }
+
+    .card-icon.income {
+      background: var(--lime);
+    }
+
+    .card-title {
+      display: block;
+      margin-bottom: 5px;
+      font-size: 17px;
+      font-weight: 900;
+    }
+
+    .card-copy {
+      display: block;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.45;
+    }
+
+    .cra-panel {
+      margin: 20px;
+      padding: 18px;
+      border: 1px solid rgba(53, 208, 127, 0.22);
+      border-radius: 24px;
+      background:
+        linear-gradient(135deg, rgba(53, 208, 127, 0.12), rgba(86, 185, 255, 0.08)),
+        rgba(255, 255, 255, 0.045);
+    }
+
+    .cra-panel h2 {
+      margin: 0 0 8px;
+      font-size: 19px;
+      letter-spacing: 0;
+    }
+
+    .cra-panel p {
+      margin: 0;
+      color: var(--soft);
+      font-size: 14px;
+      line-height: 1.55;
+    }
+
+    .checklist {
+      display: grid;
+      gap: 9px;
+      margin: 16px 0 0;
+      padding: 0;
+      list-style: none;
+    }
+
+    .checklist li {
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      color: var(--soft);
+      font-size: 13px;
+    }
+
+    .checklist li::before {
+      content: "";
+      width: 16px;
+      height: 16px;
+      flex: 0 0 auto;
+      border-radius: 50%;
+      background:
+        linear-gradient(135deg, transparent 46%, #07120d 46% 56%, transparent 56%),
+        var(--green);
+    }
+
+    footer {
+      display: flex;
+      justify-content: space-between;
+      gap: 14px;
+      padding: 0 20px 24px;
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    @media (min-width: 820px) {
+      .app {
+        width: min(100% - 48px, 1080px);
+        padding: 24px;
+      }
+
+      .phone {
+        min-height: auto;
+        border-radius: 34px;
+      }
+
+      .hero {
+        display: grid;
+        grid-template-columns: minmax(0, 0.92fr) minmax(340px, 0.68fr);
+        gap: 30px;
+        align-items: center;
+        padding: 38px 34px 24px;
+      }
+
+      .hero h1 {
+        font-size: clamp(58px, 7vw, 84px);
+      }
+
+      .section {
+        padding-inline: 34px;
+      }
+
+      .grid {
+        grid-template-columns: repeat(5, minmax(0, 1fr));
+      }
+
+      .action-card.wide {
+        grid-column: span 2;
+      }
+
+      .cra-panel {
+        margin: 24px 34px;
+      }
+
+      footer {
+        padding-inline: 34px;
+      }
+    }
+
+    @media (max-width: 420px) {
+      .app {
+        padding: 0;
+      }
+
+      .phone {
+        min-height: 100vh;
+        border: 0;
+        border-radius: 0;
+      }
+
+      .topbar,
+      .hero,
+      .section {
+        padding-left: 16px;
+        padding-right: 16px;
+      }
+
+      .topbar {
+        gap: 10px;
+      }
+
+      .brand-mark {
+        width: 40px;
+        height: 40px;
+        border-radius: 14px;
+      }
+
+      .brand-text strong {
+        font-size: 16px;
+      }
+
+      .cra-pill {
+        padding-inline: 9px;
+        font-size: 11px;
+      }
+
+      .hero h1 {
+        font-size: clamp(36px, 12vw, 48px);
+      }
+
+      .grid {
+        gap: 9px;
+      }
+
+      .action-card {
+        min-height: 146px;
+        padding: 14px;
+        border-radius: 20px;
+      }
+
+      .card-title {
+        font-size: 16px;
+      }
+
+      .cra-panel {
+        margin: 18px 16px;
+      }
+
+      footer {
+        flex-direction: column;
+        padding-left: 16px;
+        padding-right: 16px;
+      }
+    }
+  </style>
 </head>
 <body>
+  <main class="app">
+    <div class="phone">
+      <header class="topbar">
+        <a class="brand" href="#">
+          <span class="brand-mark">GW</span>
+          <span class="brand-text">
+            <strong>Gig Work Hub</strong>
+            <span>Rider mileage and tax logbook</span>
+          </span>
+        </a>
+        <span class="cra-pill">CRA ready</span>
+      </header>
 
-<div class="accent-bar"></div>
+      <section class="hero" aria-labelledby="hero-title">
+        <div>
+          <div class="date" id="today-date">Today</div>
+          <h1 id="hero-title">Ride today. <span>Claim it later.</span></h1>
+          <p>Fast daily logging for delivery riders, couriers, and app drivers. Track kilometres, fuel, repairs, and platform income in records built for tax season.</p>
+        </div>
 
-<header>
-  <div class="logo">
-    <div class="logo-mark">GW</div>
-    <div>
-      <div class="logo-text">Gig Work Hub</div>
-      <div class="logo-sub">2026 Tax Tracker</div>
+        <div class="ride-strip" aria-label="Rider dashboard preview">
+          <div class="road">
+            <div class="rider" aria-hidden="true">
+              <span class="frame"></span>
+              <span class="box"></span>
+            </div>
+          </div>
+          <div class="stats">
+            <div class="stat">
+              <strong>KM</strong>
+              <span>shift odometer</span>
+            </div>
+            <div class="stat">
+              <strong>$</strong>
+              <span>income and tips</span>
+            </div>
+            <div class="stat">
+              <strong>CRA</strong>
+              <span>clean records</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="section" aria-labelledby="shift-title">
+        <h2 class="section-title" id="shift-title">Start or finish a ride</h2>
+        <div class="grid">
+          <a class="action-card" href="https://forms.gle/rdEP9sU3nW5ZRpGv9" target="_blank" rel="noopener">
+            <span class="card-icon">GO</span>
+            <span class="card-title">Start Shift</span>
+            <span class="card-copy">Capture your starting odometer before the first delivery.</span>
+          </a>
+
+          <a class="action-card" href="https://forms.gle/DHMZtj83eGkyPfQL8" target="_blank" rel="noopener">
+            <span class="card-icon finish">END</span>
+            <span class="card-title">End Shift</span>
+            <span class="card-copy">Close the route with final kilometres and shift notes.</span>
+          </a>
+        </div>
+      </section>
+
+      <section class="section" aria-labelledby="money-title">
+        <h2 class="section-title" id="money-title">Log rider costs and income</h2>
+        <div class="grid">
+          <a class="action-card" href="https://forms.gle/gGkmq2kWi8cikAQR6" target="_blank" rel="noopener">
+            <span class="card-icon fuel">L</span>
+            <span class="card-title">Fuel</span>
+            <span class="card-copy">Record litres, price, receipt, and odometer.</span>
+          </a>
+
+          <a class="action-card" href="https://forms.gle/a5cSVqwSPSH84hge8" target="_blank" rel="noopener">
+            <span class="card-icon repair">R</span>
+            <span class="card-title">Repairs</span>
+            <span class="card-copy">Track tires, oil, brake work, gear, and service.</span>
+          </a>
+
+          <a class="action-card wide" href="https://forms.gle/EnydU41CAJ2YdWnb6" target="_blank" rel="noopener">
+            <span class="card-icon income">PAY</span>
+            <span>
+              <span class="card-title">Platform Income</span>
+              <span class="card-copy">Add payouts from Uber, DoorDash, Skip, Amazon Flex, Instacart, and more.</span>
+            </span>
+          </a>
+        </div>
+      </section>
+
+      <section class="cra-panel" aria-labelledby="cra-title">
+        <h2 id="cra-title">Built for CRA-ready habits</h2>
+        <p>Every tap sends structured details to your Google Sheet so kilometres, expenses, and income stay organized throughout the year.</p>
+        <ul class="checklist">
+          <li>Separate business kilometres from personal driving.</li>
+          <li>Keep fuel, maintenance, and platform income in one trail.</li>
+          <li>Make monthly review easier before tax season arrives.</li>
+        </ul>
+      </section>
+
+      <footer>
+        <span>Auto-saves to Google Forms and Sheets</span>
+        <span>Gig Work Hub 2026</span>
+      </footer>
     </div>
-  </div>
-  <div class="live-badge">
-    <div class="live-dot"></div>
-    Live
-  </div>
-</header>
+  </main>
 
-<div class="hero">
-  <div class="hero-date" id="today-date"></div>
-  <h1 class="hero-title">Track every<br><span class="green">kilometre.</span></h1>
-  <p class="hero-sub">Tap below to log your shift,<br>fuel stop, or income.</p>
-</div>
-
-<div class="section-label">Log a shift</div>
-
-<div class="grid">
-
-  <a class="btn" href="https://forms.gle/rdEP9sU3nW5ZRpGv9">
-    <div class="btn-icon ig">🚗</div>
-    <span class="btn-label">Start Shift</span>
-    <span class="btn-desc">Log start odometer</span>
-    <span class="btn-arrow">↗</span>
-  </a>
-
-  <a class="btn" href="https://forms.gle/DHMZtj83eGkyPfQL8">
-    <div class="btn-icon ia">🏁</div>
-    <span class="btn-label">End Shift</span>
-    <span class="btn-desc">Log end odometer</span>
-    <span class="btn-arrow">↗</span>
-  </a>
-
-</div>
-
-<div class="section-label">Log an expense</div>
-
-<div class="grid">
-
-  <a class="btn" href="https://forms.gle/gGkmq2kWi8cikAQR6">
-    <div class="btn-icon ib">⛽</div>
-    <span class="btn-label">Fuel</span>
-    <span class="btn-desc">Cost & odometer</span>
-    <span class="btn-arrow">↗</span>
-  </a>
-
-  <a class="btn" href="https://forms.gle/a5cSVqwSPSH84hge8">
-    <div class="btn-icon ic">🔧</div>
-    <span class="btn-label">Maintenance</span>
-    <span class="btn-desc">Oil, tires, repairs</span>
-    <span class="btn-arrow">↗</span>
-  </a>
-
-  <a class="btn btn-wide" href="https://forms.gle/EnydU41CAJ2YdWnb6">
-    <div class="btn-icon ip">💰</div>
-    <div class="btn-content">
-      <span class="btn-label">Income</span>
-      <span class="btn-desc">Log earnings from Amazon Flex, Uber, DoorDash & more</span>
-    </div>
-    <span class="btn-arrow">↗</span>
-  </a>
-
-</div>
-
-<hr class="divider">
-
-<footer>
-  <span class="footer-text">Auto-saves to Google Sheets</span>
-  <span class="footer-cra">✓ CRA Ready</span>
-</footer>
-
-<script>
-  const d = new Date();
-  const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
-  document.getElementById('today-date').textContent = d.toLocaleDateString('en-CA', options);
-</script>
-
+  <script>
+    const dateElement = document.getElementById("today-date");
+    if (dateElement) {
+      dateElement.textContent = new Date().toLocaleDateString("en-CA", {
+        weekday: "long",
+        month: "long",
+        day: "numeric",
+        year: "numeric"
+      });
+    }
+  </script>
 </body>
 </html>
