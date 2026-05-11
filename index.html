@@ -62,6 +62,13 @@
       text-decoration: none;
     }
 
+    button,
+    input,
+    select,
+    textarea {
+      font: inherit;
+    }
+
     .app {
       position: relative;
       z-index: 1;
@@ -319,6 +326,9 @@
       background:
         linear-gradient(180deg, rgba(255,255,255,0.075), rgba(255,255,255,0.035)),
         var(--surface);
+      color: inherit;
+      cursor: pointer;
+      text-align: left;
       overflow: hidden;
       transition: transform 160ms ease, border-color 160ms ease, background 160ms ease;
     }
@@ -461,6 +471,160 @@
       font-size: 12px;
     }
 
+    .setup-note {
+      margin: 18px 20px 0;
+      padding: 13px 14px;
+      border: 1px solid rgba(255, 177, 90, 0.22);
+      border-radius: 18px;
+      background: rgba(255, 177, 90, 0.09);
+      color: #ffd9ac;
+      font-size: 13px;
+      line-height: 1.45;
+    }
+
+    .modal {
+      position: fixed;
+      inset: 0;
+      z-index: 10;
+      display: none;
+      place-items: end center;
+      padding: 14px;
+      background: rgba(3, 7, 11, 0.72);
+      backdrop-filter: blur(12px);
+    }
+
+    .modal.open {
+      display: grid;
+    }
+
+    .modal-panel {
+      width: min(100%, 520px);
+      max-height: min(780px, calc(100vh - 28px));
+      overflow: auto;
+      border: 1px solid var(--line);
+      border-radius: 28px;
+      background: #101821;
+      box-shadow: var(--shadow);
+    }
+
+    .modal-head {
+      position: sticky;
+      top: 0;
+      z-index: 1;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      padding: 18px;
+      border-bottom: 1px solid var(--line);
+      background: rgba(16, 24, 33, 0.96);
+    }
+
+    .modal-head h2 {
+      margin: 0;
+      font-size: 21px;
+      letter-spacing: 0;
+    }
+
+    .close-button {
+      width: 38px;
+      height: 38px;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      background: rgba(255, 255, 255, 0.06);
+      color: var(--text);
+      cursor: pointer;
+      font-size: 24px;
+      line-height: 1;
+    }
+
+    .entry-form {
+      display: grid;
+      gap: 14px;
+      padding: 18px;
+    }
+
+    .form-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 12px;
+    }
+
+    .field {
+      display: grid;
+      gap: 7px;
+    }
+
+    .field.full {
+      grid-column: 1 / -1;
+    }
+
+    .field label {
+      color: var(--soft);
+      font-size: 12px;
+      font-weight: 800;
+    }
+
+    .field input,
+    .field select,
+    .field textarea {
+      width: 100%;
+      min-height: 46px;
+      border: 1px solid var(--line);
+      border-radius: 15px;
+      background: rgba(255, 255, 255, 0.07);
+      color: var(--text);
+      padding: 0 13px;
+      outline: none;
+    }
+
+    .field textarea {
+      min-height: 88px;
+      padding-top: 12px;
+      resize: vertical;
+    }
+
+    .field input:focus,
+    .field select:focus,
+    .field textarea:focus {
+      border-color: rgba(53, 208, 127, 0.7);
+      box-shadow: 0 0 0 3px rgba(53, 208, 127, 0.13);
+    }
+
+    .field select option {
+      color: #101821;
+    }
+
+    .submit-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-top: 4px;
+    }
+
+    .submit-button {
+      min-height: 48px;
+      flex: 0 0 auto;
+      border: 0;
+      border-radius: 999px;
+      padding: 0 20px;
+      background: linear-gradient(135deg, var(--green), var(--lime));
+      color: #07120d;
+      cursor: pointer;
+      font-weight: 900;
+    }
+
+    .submit-button:disabled {
+      cursor: not-allowed;
+      opacity: 0.65;
+    }
+
+    .form-status {
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.4;
+    }
+
     @media (min-width: 820px) {
       .app {
         width: min(100% - 48px, 1080px);
@@ -498,6 +662,10 @@
 
       .cra-panel {
         margin: 24px 34px;
+      }
+
+      .setup-note {
+        margin-inline: 34px;
       }
 
       footer {
@@ -564,6 +732,20 @@
         margin: 18px 16px;
       }
 
+      .setup-note {
+        margin-left: 16px;
+        margin-right: 16px;
+      }
+
+      .form-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .submit-row {
+        align-items: stretch;
+        flex-direction: column;
+      }
+
       footer {
         flex-direction: column;
         padding-left: 16px;
@@ -620,42 +802,42 @@
       <section class="section" aria-labelledby="shift-title">
         <h2 class="section-title" id="shift-title">Start or finish a ride</h2>
         <div class="grid">
-          <a class="action-card" href="https://forms.gle/rdEP9sU3nW5ZRpGv9" target="_blank" rel="noopener">
+          <button class="action-card" type="button" data-entry="start_shift">
             <span class="card-icon">GO</span>
             <span class="card-title">Start Shift</span>
             <span class="card-copy">Capture your starting odometer before the first delivery.</span>
-          </a>
+          </button>
 
-          <a class="action-card" href="https://forms.gle/DHMZtj83eGkyPfQL8" target="_blank" rel="noopener">
+          <button class="action-card" type="button" data-entry="end_shift">
             <span class="card-icon finish">END</span>
             <span class="card-title">End Shift</span>
             <span class="card-copy">Close the route with final kilometres and shift notes.</span>
-          </a>
+          </button>
         </div>
       </section>
 
       <section class="section" aria-labelledby="money-title">
         <h2 class="section-title" id="money-title">Log rider costs and income</h2>
         <div class="grid">
-          <a class="action-card" href="https://forms.gle/gGkmq2kWi8cikAQR6" target="_blank" rel="noopener">
+          <button class="action-card" type="button" data-entry="fuel">
             <span class="card-icon fuel">L</span>
             <span class="card-title">Fuel</span>
             <span class="card-copy">Record litres, price, receipt, and odometer.</span>
-          </a>
+          </button>
 
-          <a class="action-card" href="https://forms.gle/a5cSVqwSPSH84hge8" target="_blank" rel="noopener">
+          <button class="action-card" type="button" data-entry="repair">
             <span class="card-icon repair">R</span>
             <span class="card-title">Repairs</span>
             <span class="card-copy">Track tires, oil, brake work, gear, and service.</span>
-          </a>
+          </button>
 
-          <a class="action-card wide" href="https://forms.gle/EnydU41CAJ2YdWnb6" target="_blank" rel="noopener">
+          <button class="action-card wide" type="button" data-entry="income">
             <span class="card-icon income">PAY</span>
             <span>
               <span class="card-title">Platform Income</span>
               <span class="card-copy">Add payouts from Uber, DoorDash, Skip, Amazon Flex, Instacart, and more.</span>
             </span>
-          </a>
+          </button>
         </div>
       </section>
 
@@ -669,14 +851,92 @@
         </ul>
       </section>
 
+      <aside class="setup-note" id="setup-note">
+        Connect your Google Sheet by deploying <strong>apps-script.gs</strong> as a web app and pasting the deployment URL into <strong>SCRIPT_URL</strong> in this file.
+      </aside>
+
       <footer>
-        <span>Auto-saves to Google Forms and Sheets</span>
+        <span>Auto-saves to your Google Sheet</span>
         <span>Gig Work Hub 2026</span>
       </footer>
     </div>
   </main>
 
+  <div class="modal" id="entry-modal" aria-hidden="true">
+    <div class="modal-panel" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+      <div class="modal-head">
+        <h2 id="modal-title">New entry</h2>
+        <button class="close-button" type="button" data-close aria-label="Close form">&times;</button>
+      </div>
+      <form class="entry-form" id="entry-form">
+        <input type="hidden" name="entry_type" id="entry-type">
+        <div class="form-grid" id="form-fields"></div>
+        <div class="submit-row">
+          <button class="submit-button" type="submit">Save entry</button>
+          <span class="form-status" id="form-status">Ready to log.</span>
+        </div>
+      </form>
+    </div>
+  </div>
+
   <script>
+    const SCRIPT_URL = "";
+
+    const entryForms = {
+      start_shift: {
+        title: "Start Shift",
+        status: "Log your starting kilometres before the first delivery.",
+        fields: [
+          { name: "shift_date", label: "Date", type: "date", required: true },
+          { name: "platform", label: "Platform", type: "select", required: true, options: ["Uber", "DoorDash", "SkipTheDishes", "Amazon Flex", "Instacart", "Other"] },
+          { name: "start_km", label: "Start km", type: "number", required: true, min: "0", step: "0.1" },
+          { name: "notes", label: "Notes", type: "textarea", full: true }
+        ]
+      },
+      end_shift: {
+        title: "End Shift",
+        status: "Close your route with ending kilometres.",
+        fields: [
+          { name: "shift_date", label: "Date", type: "date", required: true },
+          { name: "platform", label: "Platform", type: "select", required: true, options: ["Uber", "DoorDash", "SkipTheDishes", "Amazon Flex", "Instacart", "Other"] },
+          { name: "end_km", label: "End km", type: "number", required: true, min: "0", step: "0.1" },
+          { name: "notes", label: "Shift notes", type: "textarea", full: true }
+        ]
+      },
+      fuel: {
+        title: "Fuel Entry",
+        status: "Record fuel details for your rider log.",
+        fields: [
+          { name: "shift_date", label: "Date", type: "date", required: true },
+          { name: "fuel_litres", label: "Litres", type: "number", min: "0", step: "0.01" },
+          { name: "fuel_cost", label: "Fuel cost", type: "number", required: true, min: "0", step: "0.01" },
+          { name: "start_km", label: "Odometer km", type: "number", min: "0", step: "0.1" },
+          { name: "notes", label: "Receipt or notes", type: "textarea", full: true }
+        ]
+      },
+      repair: {
+        title: "Repair Entry",
+        status: "Track maintenance, service, and rider gear.",
+        fields: [
+          { name: "shift_date", label: "Date", type: "date", required: true },
+          { name: "repair_type", label: "Repair type", type: "select", required: true, options: ["Oil", "Tires", "Brakes", "Battery", "Bike service", "Car service", "Gear", "Other"] },
+          { name: "repair_cost", label: "Cost", type: "number", required: true, min: "0", step: "0.01" },
+          { name: "notes", label: "Receipt or notes", type: "textarea", full: true }
+        ]
+      },
+      income: {
+        title: "Platform Income",
+        status: "Log platform payouts and tips.",
+        fields: [
+          { name: "shift_date", label: "Date", type: "date", required: true },
+          { name: "platform", label: "Platform", type: "select", required: true, options: ["Uber", "DoorDash", "SkipTheDishes", "Amazon Flex", "Instacart", "Other"] },
+          { name: "income_amount", label: "Income", type: "number", required: true, min: "0", step: "0.01" },
+          { name: "tips_amount", label: "Tips", type: "number", min: "0", step: "0.01" },
+          { name: "notes", label: "Notes", type: "textarea", full: true }
+        ]
+      }
+    };
+
     const dateElement = document.getElementById("today-date");
     if (dateElement) {
       dateElement.textContent = new Date().toLocaleDateString("en-CA", {
@@ -685,6 +945,119 @@
         day: "numeric",
         year: "numeric"
       });
+    }
+
+    const modal = document.getElementById("entry-modal");
+    const modalTitle = document.getElementById("modal-title");
+    const entryForm = document.getElementById("entry-form");
+    const entryType = document.getElementById("entry-type");
+    const formFields = document.getElementById("form-fields");
+    const formStatus = document.getElementById("form-status");
+    const submitButton = entryForm.querySelector(".submit-button");
+    const setupNote = document.getElementById("setup-note");
+
+    if (SCRIPT_URL) {
+      setupNote.hidden = true;
+    }
+
+    document.querySelectorAll("[data-entry]").forEach((button) => {
+      button.addEventListener("click", () => openEntryForm(button.dataset.entry));
+    });
+
+    document.querySelectorAll("[data-close]").forEach((button) => {
+      button.addEventListener("click", closeEntryForm);
+    });
+
+    modal.addEventListener("click", (event) => {
+      if (event.target === modal) {
+        closeEntryForm();
+      }
+    });
+
+    document.addEventListener("keydown", (event) => {
+      if (event.key === "Escape" && modal.classList.contains("open")) {
+        closeEntryForm();
+      }
+    });
+
+    entryForm.addEventListener("submit", async (event) => {
+      event.preventDefault();
+
+      if (!SCRIPT_URL) {
+        formStatus.textContent = "Add your Apps Script web app URL to SCRIPT_URL first.";
+        return;
+      }
+
+      const payload = Object.fromEntries(new FormData(entryForm).entries());
+      submitButton.disabled = true;
+      formStatus.textContent = "Saving to Google Sheets...";
+
+      try {
+        await fetch(SCRIPT_URL, {
+          method: "POST",
+          mode: "no-cors",
+          headers: { "Content-Type": "text/plain;charset=utf-8" },
+          body: JSON.stringify(payload)
+        });
+
+        formStatus.textContent = "Saved. You can close this form or add another entry.";
+        entryForm.reset();
+        setDefaultDate();
+      } catch (error) {
+        formStatus.textContent = "Could not save. Check your Apps Script URL and deployment permissions.";
+      } finally {
+        submitButton.disabled = false;
+      }
+    });
+
+    function openEntryForm(type) {
+      const config = entryForms[type];
+      if (!config) {
+        return;
+      }
+
+      modalTitle.textContent = config.title;
+      entryType.value = type;
+      formStatus.textContent = config.status;
+      formFields.innerHTML = config.fields.map(renderField).join("");
+      modal.classList.add("open");
+      modal.setAttribute("aria-hidden", "false");
+      setDefaultDate();
+      const firstField = formFields.querySelector("input, select, textarea");
+      if (firstField) {
+        firstField.focus();
+      }
+    }
+
+    function closeEntryForm() {
+      modal.classList.remove("open");
+      modal.setAttribute("aria-hidden", "true");
+      entryForm.reset();
+    }
+
+    function setDefaultDate() {
+      const dateInput = entryForm.querySelector('input[name="shift_date"]');
+      if (dateInput && !dateInput.value) {
+        dateInput.value = new Date().toISOString().slice(0, 10);
+      }
+    }
+
+    function renderField(field) {
+      const required = field.required ? " required" : "";
+      const full = field.full ? " full" : "";
+      const min = field.min ? ` min="${field.min}"` : "";
+      const step = field.step ? ` step="${field.step}"` : "";
+
+      if (field.type === "textarea") {
+        return `<div class="field${full}"><label for="${field.name}">${field.label}</label><textarea id="${field.name}" name="${field.name}"${required}></textarea></div>`;
+      }
+
+      if (field.type === "select") {
+        const options = field.options.map((option) => `<option value="${option}">${option}</option>`).join("");
+        return `<div class="field${full}"><label for="${field.name}">${field.label}</label><select id="${field.name}" name="${field.name}"${required}><option value="">Choose...</option>${options}</select></div>`;
+      }
+
+      return `<div class="field${full}"><label for="${field.name}">${field.label}</label><input id="${field.name}" name="${field.name}" type="${field.type}"${required}${min}${step}></div>`;
     }
   </script>
 </body>
