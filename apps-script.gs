@@ -2,6 +2,7 @@ const SHEET_NAME = "GigWorkHub";
 const HEADERS = [
   "submitted_at",
   "entry_type",
+  "rider_name",
   "shift_date",
   "platform",
   "start_km",
@@ -24,6 +25,7 @@ function doPost(e) {
     sheet.appendRow([
       new Date(),
       payload.entry_type || "",
+      payload.rider_name || "",
       payload.shift_date || "",
       payload.platform || "",
       payload.start_km || "",

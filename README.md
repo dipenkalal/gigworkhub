@@ -20,3 +20,11 @@ const SCRIPT_URL = "";
 ```
 
 After that, the in-page forms will append rows to the `GigWorkHub` sheet tab.
+
+## Edit Rider Names
+
+Open `index.html` and update this array:
+
+```js
+const RIDER_NAMES = ["Dipen", "Other"];
+```

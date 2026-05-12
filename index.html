@@ -881,12 +881,15 @@
 
   <script>
     const SCRIPT_URL = "";
+    const RIDER_NAMES = ["Dipen", "Other"];
+    const riderNameField = { name: "rider_name", label: "Rider name", type: "select", required: true, options: RIDER_NAMES };
 
     const entryForms = {
       start_shift: {
         title: "Start Shift",
         status: "Log your starting kilometres before the first delivery.",
         fields: [
+          riderNameField,
           { name: "shift_date", label: "Date", type: "date", required: true },
           { name: "platform", label: "Platform", type: "select", required: true, options: ["Uber", "DoorDash", "SkipTheDishes", "Amazon Flex", "Instacart", "Other"] },
           { name: "start_km", label: "Start km", type: "number", required: true, min: "0", step: "0.1" },
@@ -897,6 +900,7 @@
         title: "End Shift",
         status: "Close your route with ending kilometres.",
         fields: [
+          riderNameField,
           { name: "shift_date", label: "Date", type: "date", required: true },
           { name: "platform", label: "Platform", type: "select", required: true, options: ["Uber", "DoorDash", "SkipTheDishes", "Amazon Flex", "Instacart", "Other"] },
           { name: "end_km", label: "End km", type: "number", required: true, min: "0", step: "0.1" },
@@ -907,6 +911,7 @@
         title: "Fuel Entry",
         status: "Record fuel details for your rider log.",
         fields: [
+          riderNameField,
           { name: "shift_date", label: "Date", type: "date", required: true },
           { name: "fuel_litres", label: "Litres", type: "number", min: "0", step: "0.01" },
           { name: "fuel_cost", label: "Fuel cost", type: "number", required: true, min: "0", step: "0.01" },
@@ -918,6 +923,7 @@
         title: "Repair Entry",
         status: "Track maintenance, service, and rider gear.",
         fields: [
+          riderNameField,
           { name: "shift_date", label: "Date", type: "date", required: true },
           { name: "repair_type", label: "Repair type", type: "select", required: true, options: ["Oil", "Tires", "Brakes", "Battery", "Bike service", "Car service", "Gear", "Other"] },
           { name: "repair_cost", label: "Cost", type: "number", required: true, min: "0", step: "0.01" },
@@ -928,6 +934,7 @@
         title: "Platform Income",
         status: "Log platform payouts and tips.",
         fields: [
+          riderNameField,
           { name: "shift_date", label: "Date", type: "date", required: true },
           { name: "platform", label: "Platform", type: "select", required: true, options: ["Uber", "DoorDash", "SkipTheDishes", "Amazon Flex", "Instacart", "Other"] },
           { name: "income_amount", label: "Income", type: "number", required: true, min: "0", step: "0.01" },
