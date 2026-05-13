@@ -471,17 +471,6 @@
       font-size: 12px;
     }
 
-    .setup-note {
-      margin: 18px 20px 0;
-      padding: 13px 14px;
-      border: 1px solid rgba(255, 177, 90, 0.22);
-      border-radius: 18px;
-      background: rgba(255, 177, 90, 0.09);
-      color: #ffd9ac;
-      font-size: 13px;
-      line-height: 1.45;
-    }
-
     .modal {
       position: fixed;
       inset: 0;
@@ -664,10 +653,6 @@
         margin: 24px 34px;
       }
 
-      .setup-note {
-        margin-inline: 34px;
-      }
-
       footer {
         padding-inline: 34px;
       }
@@ -730,11 +715,6 @@
 
       .cra-panel {
         margin: 18px 16px;
-      }
-
-      .setup-note {
-        margin-left: 16px;
-        margin-right: 16px;
       }
 
       .form-grid {
@@ -851,10 +831,6 @@
         </ul>
       </section>
 
-      <aside class="setup-note" id="setup-note">
-        Supabase is connected. Run <strong>supabase-schema.sql</strong> in your Supabase SQL editor once before saving entries.
-      </aside>
-
       <footer>
         <span>Auto-saves to your Supabase database</span>
         <span>Gig Work Hub 2026</span>
@@ -968,8 +944,6 @@
     const formFields = document.getElementById("form-fields");
     const formStatus = document.getElementById("form-status");
     const submitButton = entryForm.querySelector(".submit-button");
-    const setupNote = document.getElementById("setup-note");
-
     document.querySelectorAll("[data-entry]").forEach((button) => {
       button.addEventListener("click", () => openEntryForm(button.dataset.entry));
     });
