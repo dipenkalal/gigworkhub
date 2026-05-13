@@ -1,25 +1,35 @@
 # Gig Work Hub
 
-Mobile-first rider logbook for gig workers. The static site runs on GitHub Pages and posts entries to Google Sheets through a Google Apps Script web app.
+Mobile-first rider logbook for gig workers. The static site runs on GitHub Pages and saves entries directly to Supabase.
 
-## Connect Google Sheets
+## Supabase Setup
 
-1. Create or open the Google Spreadsheet you want to use.
-2. Go to **Extensions > Apps Script**.
-3. Paste the contents of `apps-script.gs` into the script editor.
-4. Save the project.
-5. Click **Deploy > New deployment**.
-6. Select **Web app**.
-7. Set **Execute as** to **Me**.
-8. Set **Who has access** to **Anyone**.
-9. Deploy and copy the Web app URL.
-10. Open `index.html` and paste that URL into:
+1. Open your Supabase project.
+2. Go to **SQL Editor**.
+3. Paste and run the contents of `supabase-schema.sql`.
+4. Confirm these tables were created:
+   - `shift_entries`
+   - `fuel_entries`
+   - `repair_entries`
+   - `income_entries`
+5. Open the GitHub Pages site and submit a test entry.
+
+The frontend is configured in `index.html`:
 
 ```js
-const SCRIPT_URL = "";
+const SUPABASE_URL = "https://oumtpyrydlczmhxagbcq.supabase.co";
+const SUPABASE_KEY = "sb_publishable_zeny0sgq0oB5LvK2iTEAdw_rqBoFVXE";
 ```
 
-After that, the in-page forms will append rows to the `GigWorkHub` sheet tab.
+## Why Separate Tables?
+
+Odometer readings are intentionally separated:
+
+- `shift_entries.start_km` and `shift_entries.end_km` are only for shift start/end records.
+- `fuel_entries.odometer_km` is only for fuel stops.
+- repairs and income never touch shift odometer fields.
+
+This prevents a fuel odometer reading from being treated like an end-shift odometer reading.
 
 ## Edit Rider Names
 
