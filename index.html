@@ -909,16 +909,16 @@
           </div>
           <div class="stats">
             <div class="stat">
-              <strong>KM</strong>
-              <span>shift odometer</span>
+              <strong id="total-km">0 km</strong>
+              <span>completed kilometres</span>
             </div>
             <div class="stat">
-              <strong>$</strong>
+              <strong id="total-earnings">$0</strong>
               <span>income and tips</span>
             </div>
             <div class="stat">
-              <strong>CRA</strong>
-              <span>clean records</span>
+              <strong id="total-shifts">0</strong>
+              <span>closed shifts</span>
             </div>
           </div>
         </div>
@@ -1100,6 +1100,9 @@
     const accountBar = document.getElementById("account-bar");
     const accountLabel = document.getElementById("account-label");
     const logoutButton = document.getElementById("logout-button");
+    const totalKm = document.getElementById("total-km");
+    const totalEarnings = document.getElementById("total-earnings");
+    const totalShifts = document.getElementById("total-shifts");
 
     initializeAuth();
 
@@ -1165,6 +1168,7 @@
         formStatus.textContent = "Saved. You can close this form or add another entry.";
         entryForm.reset();
         setDefaultDate();
+        await loadDashboardTotals();
       } catch (error) {
         formStatus.textContent = error.message || "Could not save. Confirm the Supabase tables and policies are set up.";
       } finally {
@@ -1190,6 +1194,7 @@
       currentUser = session.user;
       currentRiderName = await getOrCreateRiderName(session.user);
       renderSignedIn();
+      await loadDashboardTotals();
     }
 
     async function getOrCreateRiderName(user) {
@@ -1293,6 +1298,74 @@
       app.style.display = "none";
       accountBar.classList.remove("visible");
       accountLabel.textContent = "Logged in";
+      renderDashboardTotals({ kilometres: 0, earnings: 0, shifts: 0 });
+    }
+
+    async function loadDashboardTotals() {
+      if (!currentUser) {
+        renderDashboardTotals({ kilometres: 0, earnings: 0, shifts: 0 });
+        return;
+      }
+
+      const [shiftResult, incomeResult] = await Promise.all([
+        supabaseClient
+          .from("shift_entries")
+          .select("start_km,end_km")
+          .eq("user_id", currentUser.id)
+          .not("start_km", "is", null)
+          .not("end_km", "is", null),
+        supabaseClient
+          .from("income_entries")
+          .select("income_amount,tips_amount")
+          .eq("user_id", currentUser.id)
+      ]);
+
+      if (shiftResult.error || incomeResult.error) {
+        totalKm.textContent = "--";
+        totalEarnings.textContent = "--";
+        totalShifts.textContent = "--";
+        return;
+      }
+
+      const kilometres = shiftResult.data.reduce((sum, row) => {
+        const start = Number(row.start_km);
+        const end = Number(row.end_km);
+        return Number.isFinite(start) && Number.isFinite(end) && end >= start
+          ? sum + (end - start)
+          : sum;
+      }, 0);
+
+      const earnings = incomeResult.data.reduce((sum, row) => {
+        const income = Number(row.income_amount) || 0;
+        const tips = Number(row.tips_amount) || 0;
+        return sum + income + tips;
+      }, 0);
+
+      renderDashboardTotals({
+        kilometres,
+        earnings,
+        shifts: shiftResult.data.length
+      });
+    }
+
+    function renderDashboardTotals(totals) {
+      totalKm.textContent = `${formatNumber(totals.kilometres)} km`;
+      totalEarnings.textContent = formatCurrency(totals.earnings);
+      totalShifts.textContent = formatNumber(totals.shifts);
+    }
+
+    function formatNumber(value) {
+      return new Intl.NumberFormat("en-CA", {
+        maximumFractionDigits: 1
+      }).format(value);
+    }
+
+    function formatCurrency(value) {
+      return new Intl.NumberFormat("en-CA", {
+        style: "currency",
+        currency: "CAD",
+        maximumFractionDigits: 0
+      }).format(value);
     }
 
     async function insertEntry(table, payload) {

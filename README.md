@@ -31,6 +31,14 @@ Each rider logs in once on their phone. Supabase stores the session in that phon
 
 Each row includes `user_id` and `rider_name`. Row level security only allows authenticated users to read, insert, and close their own shift rows.
 
+## Dashboard Totals
+
+The dashboard is user-specific:
+
+- completed kilometres = sum of `end_km - start_km` from closed shift rows
+- earnings = sum of `income_amount + tips_amount`
+- closed shifts = count of completed shift rows
+
 ## Why Separate Tables?
 
 Odometer readings are intentionally separated:
