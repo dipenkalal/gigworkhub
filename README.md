@@ -14,6 +14,8 @@ Mobile-first rider logbook for gig workers. The static site runs on GitHub Pages
    - `income_entries`
 5. Open the GitHub Pages site and submit a test entry.
 
+Run the SQL again whenever `supabase-schema.sql` changes. It is safe to rerun; it uses `if not exists` for tables and recreates policies.
+
 The frontend is configured in `index.html`:
 
 ```js
@@ -26,6 +28,8 @@ const SUPABASE_KEY = "sb_publishable_zeny0sgq0oB5LvK2iTEAdw_rqBoFVXE";
 Odometer readings are intentionally separated:
 
 - `shift_entries.start_km` and `shift_entries.end_km` are only for shift start/end records.
+- `Start Shift` creates an open shift row.
+- `End Shift` finds the latest open row for the same rider, date, and platform, then updates its `end_km`.
 - `fuel_entries.odometer_km` is only for fuel stops.
 - repairs and income never touch shift odometer fields.
 

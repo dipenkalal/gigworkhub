@@ -901,7 +901,8 @@
       end_shift: {
         title: "End Shift",
         table: "shift_entries",
-        status: "Close your route with ending kilometres.",
+        mode: "update_open_shift",
+        status: "Close the open shift for this rider, date, and platform.",
         fields: [
           riderNameField,
           { name: "shift_date", label: "Date", type: "date", required: true },
@@ -1004,31 +1005,88 @@
       formStatus.textContent = "Saving to Supabase...";
 
       try {
-        const response = await fetch(`${SUPABASE_URL}/rest/v1/${config.table}`, {
-          method: "POST",
-          headers: {
-            "apikey": SUPABASE_KEY,
-            "Authorization": `Bearer ${SUPABASE_KEY}`,
-            "Content-Type": "application/json",
-            "Prefer": "return=minimal"
-          },
-          body: JSON.stringify(payload)
-        });
-
-        if (!response.ok) {
-          const message = await response.text();
-          throw new Error(message || "Supabase insert failed");
+        if (config.mode === "update_open_shift") {
+          await closeOpenShift(payload);
+        } else {
+          await insertEntry(config.table, payload);
         }
 
         formStatus.textContent = "Saved. You can close this form or add another entry.";
         entryForm.reset();
         setDefaultDate();
       } catch (error) {
-        formStatus.textContent = "Could not save. Confirm the Supabase tables and insert policies are set up.";
+        formStatus.textContent = error.message || "Could not save. Confirm the Supabase tables and policies are set up.";
       } finally {
         submitButton.disabled = false;
       }
     });
+
+    async function insertEntry(table, payload) {
+      const response = await fetch(`${SUPABASE_URL}/rest/v1/${table}`, {
+        method: "POST",
+        headers: supabaseHeaders("return=minimal"),
+        body: JSON.stringify(payload)
+      });
+
+      if (!response.ok) {
+        const message = await response.text();
+        throw new Error(message || "Supabase insert failed");
+      }
+    }
+
+    async function closeOpenShift(payload) {
+      const params = new URLSearchParams({
+        select: "id",
+        rider_name: `eq.${payload.rider_name}`,
+        platform: `eq.${payload.platform}`,
+        shift_date: `eq.${payload.shift_date}`,
+        end_km: "is.null",
+        order: "created_at.desc",
+        limit: "1"
+      });
+
+      const lookup = await fetch(`${SUPABASE_URL}/rest/v1/shift_entries?${params.toString()}`, {
+        headers: supabaseHeaders()
+      });
+
+      if (!lookup.ok) {
+        const message = await lookup.text();
+        throw new Error(message || "Could not find open shift");
+      }
+
+      const matches = await lookup.json();
+      if (!matches.length) {
+        throw new Error("No open shift found for this rider, date, and platform");
+      }
+
+      const response = await fetch(`${SUPABASE_URL}/rest/v1/shift_entries?id=eq.${matches[0].id}`, {
+        method: "PATCH",
+        headers: supabaseHeaders("return=minimal"),
+        body: JSON.stringify({
+          end_km: payload.end_km,
+          notes: payload.notes
+        })
+      });
+
+      if (!response.ok) {
+        const message = await response.text();
+        throw new Error(message || "Could not close shift");
+      }
+    }
+
+    function supabaseHeaders(prefer) {
+      const headers = {
+        "apikey": SUPABASE_KEY,
+        "Authorization": `Bearer ${SUPABASE_KEY}`,
+        "Content-Type": "application/json"
+      };
+
+      if (prefer) {
+        headers.Prefer = prefer;
+      }
+
+      return headers;
+    }
 
     function openEntryForm(type) {
       const config = entryForms[type];
@@ -1066,13 +1124,24 @@
       };
 
       if (config.table === "shift_entries") {
-        return {
+        const payload = {
           ...base,
-          entry_type: value("entry_type"),
           shift_date: value("shift_date"),
-          platform: value("platform"),
+          platform: value("platform")
+        };
+
+        if (data.entry_type === "end_shift") {
+          return {
+            ...payload,
+            end_km: value("end_km")
+          };
+        }
+
+        return {
+          ...payload,
+          entry_type: value("entry_type"),
           start_km: value("start_km"),
-          end_km: value("end_km")
+          end_km: null
         };
       }
 

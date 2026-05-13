@@ -48,6 +48,8 @@ alter table public.repair_entries enable row level security;
 alter table public.income_entries enable row level security;
 
 drop policy if exists "Allow public shift inserts" on public.shift_entries;
+drop policy if exists "Allow public shift reads" on public.shift_entries;
+drop policy if exists "Allow public shift updates" on public.shift_entries;
 drop policy if exists "Allow public fuel inserts" on public.fuel_entries;
 drop policy if exists "Allow public repair inserts" on public.repair_entries;
 drop policy if exists "Allow public income inserts" on public.income_entries;
@@ -56,6 +58,19 @@ create policy "Allow public shift inserts"
 on public.shift_entries
 for insert
 to anon
+with check (true);
+
+create policy "Allow public shift reads"
+on public.shift_entries
+for select
+to anon
+using (true);
+
+create policy "Allow public shift updates"
+on public.shift_entries
+for update
+to anon
+using (true)
 with check (true);
 
 create policy "Allow public fuel inserts"
