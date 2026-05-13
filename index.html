@@ -1278,14 +1278,19 @@
 
     function renderSignedIn() {
       authGate.hidden = true;
+      authGate.style.display = "none";
       app.hidden = false;
+      app.style.display = "block";
       accountBar.classList.add("visible");
       accountLabel.textContent = `Logged in as ${currentRiderName}`;
+      window.scrollTo(0, 0);
     }
 
     function renderSignedOut() {
       authGate.hidden = false;
+      authGate.style.display = "grid";
       app.hidden = true;
+      app.style.display = "none";
       accountBar.classList.remove("visible");
       accountLabel.textContent = "Logged in";
     }
