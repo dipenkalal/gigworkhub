@@ -1,6 +1,6 @@
 # Gig Work Hub
 
-Mobile-first rider logbook for gig workers. The static site runs on GitHub Pages and saves entries directly to Supabase.
+Mobile-first rider logbook for gig workers. The static site runs on GitHub Pages, uses Supabase Auth for one-time phone login, and saves entries directly to Supabase.
 
 ## Supabase Setup
 
@@ -8,11 +8,13 @@ Mobile-first rider logbook for gig workers. The static site runs on GitHub Pages
 2. Go to **SQL Editor**.
 3. Paste and run the contents of `supabase-schema.sql`.
 4. Confirm these tables were created:
+   - `rider_profiles`
    - `shift_entries`
    - `fuel_entries`
    - `repair_entries`
    - `income_entries`
-5. Open the GitHub Pages site and submit a test entry.
+5. In **Authentication > Providers**, make sure **Email** is enabled.
+6. Open the GitHub Pages site, create one account for each rider, and submit a test entry.
 
 Run the SQL again whenever `supabase-schema.sql` changes. It is safe to rerun; it uses `if not exists` for tables and recreates policies.
 
@@ -22,6 +24,12 @@ The frontend is configured in `index.html`:
 const SUPABASE_URL = "https://oumtpyrydlczmhxagbcq.supabase.co";
 const SUPABASE_KEY = "sb_publishable_zeny0sgq0oB5LvK2iTEAdw_rqBoFVXE";
 ```
+
+## Login Behavior
+
+Each rider logs in once on their phone. Supabase stores the session in that phone browser, so the rider can keep adding entries until they log out, clear browser data, or the Supabase session expires.
+
+Each row includes `user_id` and `rider_name`. Row level security only allows authenticated users to read, insert, and close their own shift rows.
 
 ## Why Separate Tables?
 

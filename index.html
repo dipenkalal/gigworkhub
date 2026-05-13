@@ -78,6 +78,76 @@
       padding: 14px;
     }
 
+    .auth-gate {
+      position: relative;
+      z-index: 1;
+      display: grid;
+      place-items: center;
+      width: min(100%, 520px);
+      min-height: 100vh;
+      margin: 0 auto;
+      padding: 20px;
+    }
+
+    .auth-card {
+      width: 100%;
+      border: 1px solid var(--line);
+      border-radius: 30px;
+      background: rgba(11, 17, 23, 0.86);
+      box-shadow: var(--shadow);
+      padding: 24px;
+      backdrop-filter: blur(18px);
+    }
+
+    .auth-card h1 {
+      margin: 16px 0 10px;
+      font-size: clamp(36px, 10vw, 56px);
+      line-height: 0.98;
+      letter-spacing: 0;
+    }
+
+    .auth-card p {
+      margin: 0;
+      color: var(--soft);
+      line-height: 1.55;
+    }
+
+    .auth-form {
+      display: grid;
+      gap: 13px;
+      margin-top: 22px;
+    }
+
+    .auth-switch {
+      display: flex;
+      gap: 10px;
+      margin-top: 14px;
+    }
+
+    .auth-switch button {
+      flex: 1;
+      min-height: 40px;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.06);
+      color: var(--text);
+      cursor: pointer;
+      font-weight: 800;
+    }
+
+    .auth-switch button.active {
+      background: rgba(53, 208, 127, 0.18);
+      border-color: rgba(53, 208, 127, 0.38);
+      color: #aef7cb;
+    }
+
+    .auth-status {
+      min-height: 20px;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.45;
+    }
+
     .phone {
       min-height: calc(100vh - 28px);
       border: 1px solid var(--line);
@@ -167,6 +237,32 @@
       border-radius: 50%;
       background: var(--green);
       box-shadow: 0 0 16px var(--green);
+    }
+
+    .account-bar {
+      display: none;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 13px 20px;
+      border-bottom: 1px solid var(--line);
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .account-bar.visible {
+      display: flex;
+    }
+
+    .logout-button {
+      min-height: 34px;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      padding: 0 12px;
+      background: rgba(255, 255, 255, 0.06);
+      color: var(--text);
+      cursor: pointer;
+      font-weight: 800;
     }
 
     .hero {
@@ -680,6 +776,13 @@
         gap: 10px;
       }
 
+      .account-bar {
+        align-items: flex-start;
+        flex-direction: column;
+        padding-left: 16px;
+        padding-right: 16px;
+      }
+
       .brand-mark {
         width: 40px;
         height: 40px;
@@ -735,7 +838,41 @@
   </style>
 </head>
 <body>
-  <main class="app">
+  <section class="auth-gate" id="auth-gate">
+    <div class="auth-card">
+      <span class="brand-mark">GW</span>
+      <h1>Log in once. Ride daily.</h1>
+      <p>Your phone will remember your session so you can keep adding CRA-ready entries without signing in every time.</p>
+
+      <div class="auth-switch" aria-label="Authentication mode">
+        <button class="active" type="button" data-auth-mode="login">Login</button>
+        <button type="button" data-auth-mode="signup">Create account</button>
+      </div>
+
+      <form class="auth-form" id="auth-form">
+        <div class="field">
+          <label for="auth-email">Email</label>
+          <input id="auth-email" name="email" type="email" autocomplete="email" required>
+        </div>
+        <div class="field">
+          <label for="auth-password">Password</label>
+          <input id="auth-password" name="password" type="password" autocomplete="current-password" required minlength="6">
+        </div>
+        <div class="field" id="auth-rider-field" hidden>
+          <label for="auth-rider-name">Rider name</label>
+          <select id="auth-rider-name" name="rider_name">
+            <option value="">Choose...</option>
+            <option value="Dipen Kalal">Dipen Kalal</option>
+            <option value="Smeet Desai">Smeet Desai</option>
+          </select>
+        </div>
+        <button class="submit-button" type="submit" id="auth-submit">Login</button>
+        <span class="auth-status" id="auth-status">Use the same phone browser and you should stay logged in.</span>
+      </form>
+    </div>
+  </section>
+
+  <main class="app" id="app" hidden>
     <div class="phone">
       <header class="topbar">
         <a class="brand" href="#">
@@ -747,6 +884,10 @@
         </a>
         <span class="cra-pill">CRA ready</span>
       </header>
+      <div class="account-bar" id="account-bar">
+        <span id="account-label">Logged in</span>
+        <button class="logout-button" type="button" id="logout-button">Logout</button>
+      </div>
 
       <section class="hero" aria-labelledby="hero-title">
         <div>
@@ -823,7 +964,7 @@
 
       <section class="cra-panel" aria-labelledby="cra-title">
         <h2 id="cra-title">Built for CRA-ready habits</h2>
-        <p>Every tap sends structured details to Supabase so kilometres, expenses, and income stay organized throughout the year.</p>
+        <p>Every tap sends structured details to Supabase so kilometres, expenses, and income stay organized by rider throughout the year.</p>
         <ul class="checklist">
           <li>Separate business kilometres from personal driving.</li>
           <li>Keep fuel, maintenance, and platform income in one trail.</li>
@@ -855,11 +996,15 @@
     </div>
   </div>
 
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script>
     const SUPABASE_URL = "https://oumtpyrydlczmhxagbcq.supabase.co";
     const SUPABASE_KEY = "sb_publishable_zeny0sgq0oB5LvK2iTEAdw_rqBoFVXE";
     const RIDER_NAMES = ["Dipen Kalal", "Smeet Desai"];
-    const riderNameField = { name: "rider_name", label: "Rider name", type: "select", required: true, options: RIDER_NAMES };
+    const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+    let currentUser = null;
+    let currentRiderName = "";
+    let authMode = "login";
 
     const entryForms = {
       start_shift: {
@@ -867,7 +1012,6 @@
         table: "shift_entries",
         status: "Log your starting kilometres before the first delivery.",
         fields: [
-          riderNameField,
           { name: "shift_date", label: "Date", type: "date", required: true },
           { name: "platform", label: "Platform", type: "select", required: true, options: ["Uber", "DoorDash", "SkipTheDishes", "Amazon Flex", "Instacart", "Other"] },
           { name: "start_km", label: "Start km", type: "number", required: true, min: "0", step: "0.1" },
@@ -880,7 +1024,6 @@
         mode: "update_open_shift",
         status: "Close the open shift for this rider, date, and platform.",
         fields: [
-          riderNameField,
           { name: "shift_date", label: "Date", type: "date", required: true },
           { name: "platform", label: "Platform", type: "select", required: true, options: ["Uber", "DoorDash", "SkipTheDishes", "Amazon Flex", "Instacart", "Other"] },
           { name: "end_km", label: "End km", type: "number", required: true, min: "0", step: "0.1" },
@@ -892,7 +1035,6 @@
         table: "fuel_entries",
         status: "Record fuel details for your rider log.",
         fields: [
-          riderNameField,
           { name: "shift_date", label: "Date", type: "date", required: true },
           { name: "fuel_litres", label: "Litres", type: "number", min: "0", step: "0.01" },
           { name: "fuel_cost", label: "Fuel cost", type: "number", required: true, min: "0", step: "0.01" },
@@ -905,7 +1047,6 @@
         table: "repair_entries",
         status: "Track maintenance, service, and rider gear.",
         fields: [
-          riderNameField,
           { name: "shift_date", label: "Date", type: "date", required: true },
           { name: "repair_type", label: "Repair type", type: "select", required: true, options: ["Oil", "Tires", "Brakes", "Battery", "Bike service", "Car service", "Gear", "Other"] },
           { name: "repair_cost", label: "Cost", type: "number", required: true, min: "0", step: "0.01" },
@@ -917,7 +1058,6 @@
         table: "income_entries",
         status: "Log platform payouts and tips.",
         fields: [
-          riderNameField,
           { name: "shift_date", label: "Date", type: "date", required: true },
           { name: "platform", label: "Platform", type: "select", required: true, options: ["Uber", "DoorDash", "SkipTheDishes", "Amazon Flex", "Instacart", "Other"] },
           { name: "income_amount", label: "Income", type: "number", required: true, min: "0", step: "0.01" },
@@ -944,6 +1084,34 @@
     const formFields = document.getElementById("form-fields");
     const formStatus = document.getElementById("form-status");
     const submitButton = entryForm.querySelector(".submit-button");
+    const app = document.getElementById("app");
+    const authGate = document.getElementById("auth-gate");
+    const authForm = document.getElementById("auth-form");
+    const authEmail = document.getElementById("auth-email");
+    const authPassword = document.getElementById("auth-password");
+    const authRiderField = document.getElementById("auth-rider-field");
+    const authRiderName = document.getElementById("auth-rider-name");
+    const authStatus = document.getElementById("auth-status");
+    const authSubmit = document.getElementById("auth-submit");
+    const accountBar = document.getElementById("account-bar");
+    const accountLabel = document.getElementById("account-label");
+    const logoutButton = document.getElementById("logout-button");
+
+    initializeAuth();
+
+    document.querySelectorAll("[data-auth-mode]").forEach((button) => {
+      button.addEventListener("click", () => setAuthMode(button.dataset.authMode));
+    });
+
+    authForm.addEventListener("submit", handleAuthSubmit);
+
+    logoutButton.addEventListener("click", async () => {
+      await supabaseClient.auth.signOut();
+      currentUser = null;
+      currentRiderName = "";
+      renderSignedOut();
+    });
+
     document.querySelectorAll("[data-entry]").forEach((button) => {
       button.addEventListener("click", () => openEntryForm(button.dataset.entry));
     });
@@ -966,6 +1134,11 @@
 
     entryForm.addEventListener("submit", async (event) => {
       event.preventDefault();
+
+      if (!currentUser || !currentRiderName) {
+        formStatus.textContent = "Please log in before saving entries.";
+        return;
+      }
 
       const config = entryForms[entryType.value];
       if (!config) {
@@ -995,6 +1168,124 @@
       }
     });
 
+    async function initializeAuth() {
+      const { data } = await supabaseClient.auth.getSession();
+      await handleSession(data.session);
+
+      supabaseClient.auth.onAuthStateChange((_event, session) => {
+        handleSession(session);
+      });
+    }
+
+    async function handleSession(session) {
+      if (!session?.user) {
+        renderSignedOut();
+        return;
+      }
+
+      currentUser = session.user;
+      currentRiderName = await getOrCreateRiderName(session.user);
+      renderSignedIn();
+    }
+
+    async function getOrCreateRiderName(user) {
+      const metadataName = user.user_metadata?.rider_name || "";
+      const { data } = await supabaseClient
+        .from("rider_profiles")
+        .select("rider_name")
+        .eq("user_id", user.id)
+        .maybeSingle();
+
+      if (data?.rider_name) {
+        return data.rider_name;
+      }
+
+      const fallbackName = metadataName || RIDER_NAMES[0];
+      await supabaseClient
+        .from("rider_profiles")
+        .upsert({ user_id: user.id, rider_name: fallbackName });
+
+      return fallbackName;
+    }
+
+    async function handleAuthSubmit(event) {
+      event.preventDefault();
+      authSubmit.disabled = true;
+      authStatus.textContent = authMode === "signup" ? "Creating account..." : "Logging in...";
+
+      try {
+        if (authMode === "signup") {
+          if (!authRiderName.value) {
+            authStatus.textContent = "Choose a rider name first.";
+            return;
+          }
+
+          const { data, error } = await supabaseClient.auth.signUp({
+            email: authEmail.value,
+            password: authPassword.value,
+            options: {
+              data: { rider_name: authRiderName.value }
+            }
+          });
+
+          if (error) {
+            throw error;
+          }
+
+          if (data.user) {
+            await supabaseClient
+              .from("rider_profiles")
+              .upsert({ user_id: data.user.id, rider_name: authRiderName.value });
+          }
+
+          authStatus.textContent = data.session ? "Account ready." : "Check your email to confirm the account, then log in.";
+        } else {
+          const { error } = await supabaseClient.auth.signInWithPassword({
+            email: authEmail.value,
+            password: authPassword.value
+          });
+
+          if (error) {
+            throw error;
+          }
+
+          authStatus.textContent = "Logged in.";
+        }
+      } catch (error) {
+        authStatus.textContent = error.message || "Authentication failed.";
+      } finally {
+        authSubmit.disabled = false;
+      }
+    }
+
+    function setAuthMode(mode) {
+      authMode = mode;
+      document.querySelectorAll("[data-auth-mode]").forEach((button) => {
+        button.classList.toggle("active", button.dataset.authMode === mode);
+      });
+      authRiderField.hidden = mode !== "signup";
+      authRiderName.required = mode === "signup";
+      authSubmit.textContent = mode === "signup" ? "Create account" : "Login";
+      authPassword.autocomplete = mode === "signup" ? "new-password" : "current-password";
+      authStatus.textContent = mode === "signup"
+        ? "Create the account once on this phone, then it should stay logged in."
+        : "Use the same phone browser and you should stay logged in.";
+    }
+
+    function renderSignedIn() {
+      authGate.hidden = true;
+      app.hidden = false;
+      accountBar.classList.add("visible");
+      accountLabel.textContent = `Logged in as ${currentRiderName}`;
+    }
+
+    function renderSignedOut() {
+      authGate.hidden = false;
+      app.hidden = true;
+      accountBar.classList.remove("visible");
+      accountLabel.textContent = "Logged in";
+    }
+
     async function insertEntry(table, payload) {
       const response = await fetch(`${SUPABASE_URL}/rest/v1/${table}`, {
         method: "POST",
@@ -1011,6 +1302,7 @@
     async function closeOpenShift(payload) {
       const params = new URLSearchParams({
         select: "id",
+        user_id: `eq.${currentUser.id}`,
         rider_name: `eq.${payload.rider_name}`,
         platform: `eq.${payload.platform}`,
         shift_date: `eq.${payload.shift_date}`,
@@ -1093,7 +1385,8 @@
     function buildSupabasePayload(config, data) {
       const value = (key) => data[key] === "" ? null : data[key];
       const base = {
-        rider_name: value("rider_name"),
+        user_id: currentUser.id,
+        rider_name: currentRiderName,
         notes: value("notes")
       };
 
