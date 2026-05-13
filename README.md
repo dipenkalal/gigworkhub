@@ -26,5 +26,5 @@ After that, the in-page forms will append rows to the `GigWorkHub` sheet tab.
 Open `index.html` and update this array:
 
 ```js
-const RIDER_NAMES = ["Dipen", "Other"];
+const RIDER_NAMES = ["Dipen Kalal", "Smeet Desai"];
 ```
