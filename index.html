@@ -258,6 +258,33 @@
       display: flex;
     }
 
+    .account-profile {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      min-width: 0;
+    }
+
+    .account-avatar {
+      width: 38px;
+      height: 38px;
+      flex: 0 0 auto;
+      display: grid;
+      place-items: center;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--green), var(--blue));
+      color: #07120d;
+      font-size: 13px;
+      font-weight: 950;
+      box-shadow: 0 0 24px rgba(53, 208, 127, 0.26);
+    }
+
+    #account-label {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
     .logout-button {
       min-height: 34px;
       border: 1px solid var(--line);
@@ -889,7 +916,10 @@
         <span class="cra-pill">CRA ready</span>
       </header>
       <div class="account-bar" id="account-bar">
-        <span id="account-label">Logged in</span>
+        <span class="account-profile">
+          <span class="account-avatar" id="account-avatar" aria-hidden="true">GW</span>
+          <span id="account-label">Logged in</span>
+        </span>
         <button class="logout-button" type="button" id="logout-button">Logout</button>
       </div>
 
@@ -1098,6 +1128,7 @@
     const authStatus = document.getElementById("auth-status");
     const authSubmit = document.getElementById("auth-submit");
     const accountBar = document.getElementById("account-bar");
+    const accountAvatar = document.getElementById("account-avatar");
     const accountLabel = document.getElementById("account-label");
     const logoutButton = document.getElementById("logout-button");
     const totalKm = document.getElementById("total-km");
@@ -1287,6 +1318,7 @@
       app.hidden = false;
       app.style.display = "block";
       accountBar.classList.add("visible");
+      accountAvatar.textContent = getInitials(currentRiderName);
       accountLabel.textContent = `Logged in as ${currentRiderName}`;
       window.scrollTo(0, 0);
     }
@@ -1297,8 +1329,19 @@
       app.hidden = true;
       app.style.display = "none";
       accountBar.classList.remove("visible");
+      accountAvatar.textContent = "GW";
       accountLabel.textContent = "Logged in";
       renderDashboardTotals({ kilometres: 0, earnings: 0, shifts: 0 });
+    }
+
+    function getInitials(name) {
+      return name
+        .split(" ")
+        .filter(Boolean)
+        .slice(0, 2)
+        .map((part) => part[0])
+        .join("")
+        .toUpperCase() || "GW";
     }
 
     async function loadDashboardTotals() {
