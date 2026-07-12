@@ -553,6 +553,70 @@
         rgba(245, 239, 227, 0.04);
     }
 
+    .shift-list {
+      border: 1px solid var(--line);
+      border-radius: 20px;
+      background: var(--card);
+      overflow: hidden;
+    }
+
+    .shift-empty {
+      margin: 0;
+      padding: 18px;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .shift-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 13px 16px;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .shift-row:last-child {
+      border-bottom: 0;
+    }
+
+    .shift-date {
+      display: block;
+      font-size: 14px;
+      font-weight: 800;
+    }
+
+    .shift-meta {
+      display: block;
+      margin-top: 2px;
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .shift-side {
+      flex: 0 0 auto;
+      text-align: right;
+    }
+
+    .shift-pay {
+      display: block;
+      font-size: 14px;
+      font-weight: 800;
+      color: var(--accent);
+    }
+
+    .shift-status {
+      display: block;
+      margin-top: 2px;
+      font-size: 11px;
+      color: var(--muted);
+    }
+
+    .shift-status.open {
+      color: var(--mustard);
+      font-weight: 800;
+    }
+
     .cra-panel h2 {
       margin: 0 0 8px;
       font-size: 19px;
@@ -1000,6 +1064,15 @@
         </div>
       </section>
 
+      <section class="section" aria-labelledby="recent-title">
+        <h2 class="section-title" id="recent-title">Recent shifts</h2>
+        <div class="shift-list" id="shift-list">
+          <p class="shift-empty">No shifts logged yet. Start one above.</p>
+        </div>
+      </section>
+
+      <datalist id="station-locations"></datalist>
+
       <section class="cra-panel" aria-labelledby="cra-title">
         <h2 id="cra-title">Built for CRA-ready habits</h2>
         <p>Every tap sends structured details to Supabase so kilometres, expenses, and income stay organized by rider throughout the year.</p>
@@ -1053,6 +1126,8 @@
           { name: "shift_date", label: "Date", type: "date", required: true },
           { name: "platform", label: "Platform", type: "select", required: true, options: ["Uber", "DoorDash", "SkipTheDishes", "Amazon Flex", "Instacart", "Other"] },
           { name: "start_km", label: "Start km", type: "number", required: true, min: "0", step: "0.1" },
+          { name: "station_location", label: "Station location", type: "text", list: "station-locations" },
+          { name: "expected_pay", label: "Expected pay (optional)", type: "number", min: "0", step: "0.01" },
           { name: "notes", label: "Notes", type: "textarea", full: true }
         ]
       },
@@ -1138,6 +1213,8 @@
     const totalKm = document.getElementById("total-km");
     const totalEarnings = document.getElementById("total-earnings");
     const totalShifts = document.getElementById("total-shifts");
+    const shiftList = document.getElementById("shift-list");
+    const stationLocationsList = document.getElementById("station-locations");
 
     initializeAuth();
 
@@ -1195,15 +1272,28 @@
 
       try {
         if (config.mode === "update_open_shift") {
-          await closeOpenShift(payload);
-        } else {
-          await insertEntry(config.table, payload);
+          const closedShift = await closeOpenShift(payload);
+          formStatus.textContent = "Saved. You can close this form or add another entry.";
+          entryForm.reset();
+          setDefaultDate();
+          await loadDashboardTotals();
+          await loadRecentShifts();
+          closeEntryForm();
+          openEntryForm("income", {
+            shift_date: payload.shift_date,
+            platform: payload.platform,
+            income_amount: closedShift.expected_pay
+          });
+          return;
         }
 
+        await insertEntry(config.table, payload);
         formStatus.textContent = "Saved. You can close this form or add another entry.";
         entryForm.reset();
         setDefaultDate();
         await loadDashboardTotals();
+        await loadRecentShifts();
+        await loadStationLocations();
       } catch (error) {
         formStatus.textContent = error.message || "Could not save. Confirm the Supabase tables and policies are set up.";
       } finally {
@@ -1230,6 +1320,8 @@
       currentRiderName = await getOrCreateRiderName(session.user);
       renderSignedIn();
       await loadDashboardTotals();
+      await loadRecentShifts();
+      await loadStationLocations();
     }
 
     async function getOrCreateRiderName(user) {
@@ -1336,6 +1428,7 @@
       accountAvatar.textContent = "GW";
       accountLabel.textContent = "Logged in";
       renderDashboardTotals({ kilometres: 0, earnings: 0, shifts: 0 });
+      renderShiftList([]);
     }
 
     function getInitials(name) {
@@ -1401,6 +1494,87 @@
       totalShifts.textContent = formatNumber(totals.shifts);
     }
 
+    async function loadRecentShifts() {
+      if (!currentUser) {
+        renderShiftList([]);
+        return;
+      }
+
+      const { data, error } = await supabaseClient
+        .from("shift_entries")
+        .select("id,shift_date,platform,start_km,end_km,expected_pay,station_location")
+        .eq("user_id", currentUser.id)
+        .order("shift_date", { ascending: false })
+        .order("created_at", { ascending: false })
+        .limit(8);
+
+      if (error) {
+        shiftList.innerHTML = '<p class="shift-empty">Could not load recent shifts.</p>';
+        return;
+      }
+
+      renderShiftList(data);
+    }
+
+    function renderShiftList(rows) {
+      if (!rows.length) {
+        shiftList.innerHTML = '<p class="shift-empty">No shifts logged yet. Start one above.</p>';
+        return;
+      }
+
+      shiftList.innerHTML = rows.map((row) => {
+        const isOpen = row.end_km === null || row.end_km === undefined;
+        const start = Number(row.start_km);
+        const end = Number(row.end_km);
+        const kmLabel = !isOpen && Number.isFinite(start) && Number.isFinite(end) && end >= start
+          ? `${formatNumber(end - start)} km`
+          : "Closed";
+        const payLabel = row.expected_pay !== null && row.expected_pay !== undefined
+          ? formatCurrency(Number(row.expected_pay))
+          : "--";
+        const locationLabel = row.station_location || "No location saved";
+        const dateLabel = new Date(`${row.shift_date}T00:00:00`).toLocaleDateString("en-CA", {
+          weekday: "short",
+          month: "short",
+          day: "numeric"
+        });
+
+        return `
+          <div class="shift-row">
+            <div>
+              <span class="shift-date">${dateLabel} - ${row.platform || "Platform"}</span>
+              <span class="shift-meta">${locationLabel}</span>
+            </div>
+            <div class="shift-side">
+              <span class="shift-pay">${payLabel}</span>
+              <span class="shift-status${isOpen ? " open" : ""}">${isOpen ? "Open" : kmLabel}</span>
+            </div>
+          </div>`;
+      }).join("");
+    }
+
+    async function loadStationLocations() {
+      if (!currentUser) {
+        stationLocationsList.innerHTML = "";
+        return;
+      }
+
+      const { data, error } = await supabaseClient
+        .from("shift_entries")
+        .select("station_location")
+        .eq("user_id", currentUser.id)
+        .not("station_location", "is", null);
+
+      if (error) {
+        return;
+      }
+
+      const unique = [...new Set(data.map((row) => row.station_location).filter(Boolean))];
+      stationLocationsList.innerHTML = unique
+        .map((location) => `<option value="${location.replace(/"/g, "&quot;")}"></option>`)
+        .join("");
+    }
+
     function formatNumber(value) {
       return new Intl.NumberFormat("en-CA", {
         maximumFractionDigits: 1
@@ -1430,7 +1604,7 @@
 
     async function closeOpenShift(payload) {
       const params = new URLSearchParams({
-        select: "id",
+        select: "id,expected_pay",
         user_id: `eq.${currentUser.id}`,
         rider_name: `eq.${payload.rider_name}`,
         platform: `eq.${payload.platform}`,
@@ -1467,6 +1641,8 @@
         const message = await response.text();
         throw new Error(message || "Could not close shift");
       }
+
+      return matches[0];
     }
 
     function supabaseHeaders(prefer) {
@@ -1483,7 +1659,7 @@
       return headers;
     }
 
-    function openEntryForm(type) {
+    function openEntryForm(type, prefill) {
       const config = entryForms[type];
       if (!config) {
         return;
@@ -1491,11 +1667,25 @@
 
       modalTitle.textContent = config.title;
       entryType.value = type;
-      formStatus.textContent = config.status;
+      formStatus.textContent = prefill
+        ? "Pre-filled from your closed shift. Confirm the amount, add tips, and save."
+        : config.status;
       formFields.innerHTML = config.fields.map(renderField).join("");
       modal.classList.add("open");
       modal.setAttribute("aria-hidden", "false");
       setDefaultDate();
+
+      if (prefill) {
+        Object.entries(prefill).forEach(([key, value]) => {
+          if (value === null || value === undefined || value === "") {
+            return;
+          }
+          const field = entryForm.querySelector(`[name="${key}"]`);
+          if (field) {
+            field.value = value;
+          }
+        });
+      }
     }
 
     function closeEntryForm() {
@@ -1537,6 +1727,8 @@
           ...payload,
           entry_type: value("entry_type"),
           start_km: value("start_km"),
+          station_location: value("station_location"),
+          expected_pay: value("expected_pay"),
           end_km: null
         };
       }
@@ -1574,6 +1766,7 @@
       const full = field.full ? " full" : "";
       const min = field.min ? ` min="${field.min}"` : "";
       const step = field.step ? ` step="${field.step}"` : "";
+      const list = field.list ? ` list="${field.list}"` : "";
 
       if (field.type === "textarea") {
         return `<div class="field${full}"><label for="${field.name}">${field.label}</label><textarea id="${field.name}" name="${field.name}"${required}></textarea></div>`;
@@ -1584,7 +1777,7 @@
         return `<div class="field${full}"><label for="${field.name}">${field.label}</label><select id="${field.name}" name="${field.name}"${required}><option value="">Choose...</option>${options}</select></div>`;
       }
 
-      return `<div class="field${full}"><label for="${field.name}">${field.label}</label><input id="${field.name}" name="${field.name}" type="${field.type}"${required}${min}${step}></div>`;
+      return `<div class="field${full}"><label for="${field.name}">${field.label}</label><input id="${field.name}" name="${field.name}" type="${field.type}"${required}${min}${step}${list}></div>`;
     }
   </script>
 </body>
