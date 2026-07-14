@@ -1230,6 +1230,7 @@
     const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
     let currentUser = null;
     let currentRiderName = "";
+    let currentAccessToken = null;
     let authMode = "login";
 
     const entryForms = {
@@ -1292,6 +1293,18 @@
           { name: "tips_amount", label: "Tips", type: "number", min: "0", step: "0.01" },
           { name: "notes", label: "Notes", type: "textarea", full: true }
         ]
+      },
+      income_tips: {
+        title: "Add Tips",
+        table: "income_entries",
+        tipsOnly: true,
+        status: "Pay was already logged when you started this shift — add any tips here.",
+        fields: [
+          { name: "shift_date", label: "Date", type: "date", required: true },
+          { name: "platform", label: "Platform", type: "select", required: true, options: ["Uber", "DoorDash", "SkipTheDishes", "Amazon Flex", "Instacart", "Other"] },
+          { name: "tips_amount", label: "Tips", type: "number", required: true, min: "0", step: "0.01" },
+          { name: "notes", label: "Notes", type: "textarea", full: true }
+        ]
       }
     };
 
@@ -1350,6 +1363,7 @@
       await supabaseClient.auth.signOut();
       currentUser = null;
       currentRiderName = "";
+      currentAccessToken = null;
       renderSignedOut();
     });
 
@@ -1427,22 +1441,34 @@
 
       try {
         if (config.mode === "update_open_shift") {
-          const closedShift = await closeOpenShift(payload);
+          await closeOpenShift(payload);
           formStatus.textContent = "Saved. You can close this form or add another entry.";
           entryForm.reset();
           setDefaultDate();
           await loadDashboardTotals();
           await loadRecentShifts();
           closeEntryForm();
-          openEntryForm("income", {
+          openEntryForm("income_tips", {
             shift_date: payload.shift_date,
-            platform: payload.platform,
-            income_amount: closedShift.expected_pay
+            platform: payload.platform
           });
           return;
         }
 
         await insertEntry(config.table, payload);
+
+        if (entryType.value === "start_shift" && payload.expected_pay !== null && payload.expected_pay !== undefined) {
+          await insertEntry("income_entries", {
+            user_id: currentUser.id,
+            rider_name: currentRiderName,
+            income_date: payload.shift_date,
+            platform: payload.platform,
+            income_amount: payload.expected_pay,
+            tips_amount: 0,
+            notes: "Auto-logged from Start Shift (pay known upfront)"
+          });
+        }
+
         formStatus.textContent = "Saved. You can close this form or add another entry.";
         entryForm.reset();
         setDefaultDate();
@@ -1467,11 +1493,13 @@
 
     async function handleSession(session) {
       if (!session?.user) {
+        currentAccessToken = null;
         renderSignedOut();
         return;
       }
 
       currentUser = session.user;
+      currentAccessToken = session.access_token;
       currentRiderName = await getOrCreateRiderName(session.user);
       renderSignedIn();
       await loadDashboardTotals();
@@ -1803,7 +1831,7 @@
     function supabaseHeaders(prefer) {
       const headers = {
         "apikey": SUPABASE_KEY,
-        "Authorization": `Bearer ${SUPABASE_KEY}`,
+        "Authorization": `Bearer ${currentAccessToken || SUPABASE_KEY}`,
         "Content-Type": "application/json"
       };
 
@@ -1911,7 +1939,7 @@
         ...base,
         income_date: value("shift_date"),
         platform: value("platform"),
-        income_amount: value("income_amount"),
+        income_amount: config.tipsOnly ? 0 : value("income_amount"),
         tips_amount: value("tips_amount")
       };
     }
