@@ -617,6 +617,95 @@
       font-weight: 800;
     }
 
+    .tax-summary-button {
+      margin-top: 16px;
+      width: 100%;
+      padding: 12px;
+      border-radius: 14px;
+      border: 1px solid rgba(217, 164, 65, 0.4);
+      background: rgba(217, 164, 65, 0.14);
+      color: var(--text);
+      font-weight: 800;
+      font-size: 13px;
+      cursor: pointer;
+    }
+
+    .tax-summary-button:hover {
+      background: rgba(217, 164, 65, 0.22);
+    }
+
+    .tax-body {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      padding: 18px 20px 22px;
+    }
+
+    .tax-stats {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      background: var(--card);
+      padding: 14px 16px;
+    }
+
+    .tax-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      font-size: 13px;
+      padding: 6px 0;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .tax-row:last-child {
+      border-bottom: 0;
+    }
+
+    .tax-row span:first-child {
+      color: var(--muted);
+    }
+
+    .tax-row span:last-child {
+      font-weight: 800;
+    }
+
+    .tax-row.total span:last-child {
+      color: var(--accent);
+      font-size: 15px;
+    }
+
+    .tax-row.sub {
+      padding-left: 12px;
+      font-size: 12px;
+    }
+
+    .tax-actions {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .tax-secondary-button {
+      width: 100%;
+      padding: 12px;
+      border-radius: 14px;
+      border: 1px solid var(--line);
+      background: transparent;
+      color: var(--text);
+      font-weight: 800;
+      font-size: 13px;
+      cursor: pointer;
+    }
+
+    .tax-secondary-button:hover {
+      border-color: rgba(126, 160, 179, 0.5);
+      background: rgba(126, 160, 179, 0.1);
+    }
+
     .cra-panel h2 {
       margin: 0 0 8px;
       font-size: 19px;
@@ -1081,6 +1170,7 @@
           <li>Keep fuel, maintenance, and platform income in one trail.</li>
           <li>Make monthly review easier before tax season arrives.</li>
         </ul>
+        <button class="tax-summary-button" type="button" id="open-tax-summary">View yearly tax summary</button>
       </section>
 
       <footer>
@@ -1089,6 +1179,31 @@
       </footer>
     </div>
   </main>
+
+  <div class="modal" id="tax-modal" aria-hidden="true">
+    <div class="modal-panel" role="dialog" aria-modal="true" aria-labelledby="tax-modal-title">
+      <div class="modal-head">
+        <h2 id="tax-modal-title">Yearly tax summary</h2>
+        <button class="close-button" type="button" data-close-tax aria-label="Close summary">&times;</button>
+      </div>
+      <div class="tax-body">
+        <div class="field">
+          <label for="tax-year">Year</label>
+          <select id="tax-year"></select>
+        </div>
+
+        <div class="tax-stats" id="tax-stats">
+          <p class="shift-empty">Choose a year to see your summary.</p>
+        </div>
+
+        <div class="tax-actions">
+          <button class="submit-button" type="button" id="download-summary-csv">Download summary CSV</button>
+          <button class="tax-secondary-button" type="button" id="download-detailed-csv">Download detailed CSV (all entries)</button>
+        </div>
+        <span class="form-status" id="tax-status">Detailed CSV includes every shift, fuel, repair, and income line for the year — hand this to your accountant or attach it with your CRA filing.</span>
+      </div>
+    </div>
+  </div>
 
   <div class="modal" id="entry-modal" aria-hidden="true">
     <div class="modal-panel" role="dialog" aria-modal="true" aria-labelledby="modal-title">
@@ -1215,6 +1330,13 @@
     const totalShifts = document.getElementById("total-shifts");
     const shiftList = document.getElementById("shift-list");
     const stationLocationsList = document.getElementById("station-locations");
+    const taxModal = document.getElementById("tax-modal");
+    const taxYearSelect = document.getElementById("tax-year");
+    const taxStats = document.getElementById("tax-stats");
+    const taxStatus = document.getElementById("tax-status");
+    const openTaxSummaryButton = document.getElementById("open-tax-summary");
+    let currentTaxData = null;
+    let currentTaxYear = null;
 
     initializeAuth();
 
@@ -1249,6 +1371,39 @@
       if (event.key === "Escape" && modal.classList.contains("open")) {
         closeEntryForm();
       }
+      if (event.key === "Escape" && taxModal.classList.contains("open")) {
+        closeTaxModal();
+      }
+    });
+
+    openTaxSummaryButton.addEventListener("click", openTaxModal);
+
+    document.querySelectorAll("[data-close-tax]").forEach((button) => {
+      button.addEventListener("click", closeTaxModal);
+    });
+
+    taxModal.addEventListener("click", (event) => {
+      if (event.target === taxModal) {
+        closeTaxModal();
+      }
+    });
+
+    taxYearSelect.addEventListener("change", () => {
+      loadTaxSummary(Number(taxYearSelect.value));
+    });
+
+    document.getElementById("download-summary-csv").addEventListener("click", () => {
+      if (!currentTaxData) {
+        return;
+      }
+      downloadCsv(`gig-work-hub-summary-${currentTaxYear}.csv`, buildSummaryCsv(currentTaxData, currentTaxYear));
+    });
+
+    document.getElementById("download-detailed-csv").addEventListener("click", () => {
+      if (!currentTaxData) {
+        return;
+      }
+      downloadCsv(`gig-work-hub-detailed-${currentTaxYear}.csv`, buildDetailedCsv(currentTaxData, currentTaxYear));
     });
 
     entryForm.addEventListener("submit", async (event) => {
@@ -1759,6 +1914,211 @@
         income_amount: value("income_amount"),
         tips_amount: value("tips_amount")
       };
+    }
+
+    function openTaxModal() {
+      const currentYear = new Date().getFullYear();
+      const years = [];
+      for (let y = currentYear; y >= currentYear - 5; y--) {
+        years.push(y);
+      }
+      taxYearSelect.innerHTML = years.map((y) => `<option value="${y}">${y}</option>`).join("");
+      taxYearSelect.value = String(currentYear);
+      taxModal.classList.add("open");
+      taxModal.setAttribute("aria-hidden", "false");
+      loadTaxSummary(currentYear);
+    }
+
+    function closeTaxModal() {
+      taxModal.classList.remove("open");
+      taxModal.setAttribute("aria-hidden", "true");
+    }
+
+    async function loadTaxSummary(year) {
+      if (!currentUser) {
+        taxStats.innerHTML = '<p class="shift-empty">Please log in first.</p>';
+        return;
+      }
+
+      currentTaxYear = year;
+      currentTaxData = null;
+      taxStats.innerHTML = '<p class="shift-empty">Loading...</p>';
+
+      const startDate = `${year}-01-01`;
+      const endDate = `${year}-12-31`;
+
+      const [shiftResult, incomeResult, fuelResult, repairResult] = await Promise.all([
+        supabaseClient.from("shift_entries")
+          .select("shift_date,platform,start_km,end_km,station_location,expected_pay,notes")
+          .eq("user_id", currentUser.id).gte("shift_date", startDate).lte("shift_date", endDate),
+        supabaseClient.from("income_entries")
+          .select("income_date,platform,income_amount,tips_amount,notes")
+          .eq("user_id", currentUser.id).gte("income_date", startDate).lte("income_date", endDate),
+        supabaseClient.from("fuel_entries")
+          .select("fuel_date,fuel_litres,fuel_cost,odometer_km,notes")
+          .eq("user_id", currentUser.id).gte("fuel_date", startDate).lte("fuel_date", endDate),
+        supabaseClient.from("repair_entries")
+          .select("repair_date,repair_type,repair_cost,notes")
+          .eq("user_id", currentUser.id).gte("repair_date", startDate).lte("repair_date", endDate)
+      ]);
+
+      if (shiftResult.error || incomeResult.error || fuelResult.error || repairResult.error) {
+        taxStats.innerHTML = '<p class="shift-empty">Could not load summary. Check your Supabase tables.</p>';
+        return;
+      }
+
+      currentTaxData = {
+        shifts: shiftResult.data,
+        income: incomeResult.data,
+        fuel: fuelResult.data,
+        repairs: repairResult.data
+      };
+
+      renderTaxStats(currentTaxData);
+    }
+
+    function summarizeTaxData(taxData) {
+      const kilometres = taxData.shifts.reduce((sum, row) => {
+        const start = Number(row.start_km);
+        const end = Number(row.end_km);
+        return Number.isFinite(start) && Number.isFinite(end) && end >= start ? sum + (end - start) : sum;
+      }, 0);
+
+      const closedShifts = taxData.shifts.filter((row) => row.end_km !== null && row.end_km !== undefined).length;
+
+      const incomeByPlatform = {};
+      let incomeTotal = 0;
+      let tipsTotal = 0;
+      taxData.income.forEach((row) => {
+        const income = Number(row.income_amount) || 0;
+        const tips = Number(row.tips_amount) || 0;
+        incomeTotal += income;
+        tipsTotal += tips;
+        const platform = row.platform || "Other";
+        incomeByPlatform[platform] = (incomeByPlatform[platform] || 0) + income + tips;
+      });
+
+      const fuelTotal = taxData.fuel.reduce((sum, row) => sum + (Number(row.fuel_cost) || 0), 0);
+      const repairTotal = taxData.repairs.reduce((sum, row) => sum + (Number(row.repair_cost) || 0), 0);
+      const netIncome = incomeTotal + tipsTotal - fuelTotal - repairTotal;
+
+      return { kilometres, closedShifts, incomeByPlatform, incomeTotal, tipsTotal, fuelTotal, repairTotal, netIncome };
+    }
+
+    function renderTaxStats(taxData) {
+      const summary = summarizeTaxData(taxData);
+
+      const platformRows = Object.entries(summary.incomeByPlatform)
+        .sort((a, b) => b[1] - a[1])
+        .map(([platform, amount]) => `<div class="tax-row sub"><span>${platform}</span><span>${formatCurrency(amount)}</span></div>`)
+        .join("");
+
+      taxStats.innerHTML = `
+        <div class="tax-row"><span>Business kilometres</span><span>${formatNumber(summary.kilometres)} km</span></div>
+        <div class="tax-row"><span>Closed shifts</span><span>${formatNumber(summary.closedShifts)}</span></div>
+        <div class="tax-row"><span>Gross income (incl. tips)</span><span>${formatCurrency(summary.incomeTotal + summary.tipsTotal)}</span></div>
+        ${platformRows}
+        <div class="tax-row"><span>Fuel expenses</span><span>${formatCurrency(summary.fuelTotal)}</span></div>
+        <div class="tax-row"><span>Repairs &amp; maintenance</span><span>${formatCurrency(summary.repairTotal)}</span></div>
+        <div class="tax-row total"><span>Net income</span><span>${formatCurrency(summary.netIncome)}</span></div>
+      `;
+    }
+
+    function csvEscape(value) {
+      const str = value === null || value === undefined ? "" : String(value);
+      return /[",\n]/.test(str) ? `"${str.replace(/"/g, '""')}"` : str;
+    }
+
+    function buildSummaryCsv(taxData, year) {
+      const summary = summarizeTaxData(taxData);
+
+      const rows = [
+        ["Category", "Amount"],
+        ["Tax year", year],
+        ["Business kilometres", summary.kilometres.toFixed(1)],
+        ["Closed shifts", summary.closedShifts],
+        ["Gross income (incl. tips)", (summary.incomeTotal + summary.tipsTotal).toFixed(2)]
+      ];
+
+      Object.entries(summary.incomeByPlatform).forEach(([platform, amount]) => {
+        rows.push([`  Income - ${platform}`, amount.toFixed(2)]);
+      });
+
+      rows.push(["Fuel expenses", summary.fuelTotal.toFixed(2)]);
+      rows.push(["Repairs and maintenance", summary.repairTotal.toFixed(2)]);
+      rows.push(["Net income", summary.netIncome.toFixed(2)]);
+
+      return rows.map((row) => row.map(csvEscape).join(",")).join("\n");
+    }
+
+    function buildDetailedCsv(taxData) {
+      const header = ["Date", "Type", "Platform", "Detail", "Amount", "Notes"];
+      const body = [];
+
+      taxData.shifts.forEach((row) => {
+        const start = Number(row.start_km);
+        const end = Number(row.end_km);
+        const km = Number.isFinite(start) && Number.isFinite(end) && row.end_km !== null
+          ? `${(end - start).toFixed(1)} km`
+          : "Open shift";
+        body.push([
+          row.shift_date,
+          "Shift",
+          row.platform || "",
+          `${row.station_location || ""} (${km})`.trim(),
+          row.expected_pay !== null && row.expected_pay !== undefined ? Number(row.expected_pay).toFixed(2) : "",
+          row.notes || ""
+        ]);
+      });
+
+      taxData.income.forEach((row) => {
+        body.push([
+          row.income_date,
+          "Income",
+          row.platform || "",
+          row.tips_amount ? `Payout + tips ${Number(row.tips_amount).toFixed(2)}` : "Payout",
+          (Number(row.income_amount || 0) + Number(row.tips_amount || 0)).toFixed(2),
+          row.notes || ""
+        ]);
+      });
+
+      taxData.fuel.forEach((row) => {
+        body.push([
+          row.fuel_date,
+          "Fuel",
+          "",
+          `${row.fuel_litres || ""} L at odometer ${row.odometer_km || ""} km`.trim(),
+          Number(row.fuel_cost || 0).toFixed(2),
+          row.notes || ""
+        ]);
+      });
+
+      taxData.repairs.forEach((row) => {
+        body.push([
+          row.repair_date,
+          "Repair",
+          "",
+          row.repair_type || "",
+          Number(row.repair_cost || 0).toFixed(2),
+          row.notes || ""
+        ]);
+      });
+
+      body.sort((a, b) => String(a[0]).localeCompare(String(b[0])));
+
+      return [header, ...body].map((row) => row.map(csvEscape).join(",")).join("\n");
+    }
+
+    function downloadCsv(filename, content) {
+      const blob = new Blob([content], { type: "text/csv;charset=utf-8;" });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = filename;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
     }
 
     function renderField(field) {
