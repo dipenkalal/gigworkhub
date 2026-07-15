@@ -67,7 +67,10 @@ Before deploying this version, add the new columns to `shift_entries` in the Sup
 alter table shift_entries add column if not exists block_start_time text;
 alter table shift_entries add column if not exists block_hours numeric;
 alter table shift_entries add column if not exists block_end_time text;
+alter table shift_entries add column if not exists actual_end_time text;
 ```
+
+End Shift now pulls in the matching open shift automatically (no need to re-type the date/platform to find it): it prefills the date, start km, and expected pay from what you entered on Start Shift, and all three stay editable in case something needs correcting. It also asks for the **actual shift end time** — this is the real end time you record, separate from the estimated end time shown on Start Shift. If pay wasn't filled in when the shift started, filling it in here logs the income entry automatically.
 
 ## No PIN Gate
 

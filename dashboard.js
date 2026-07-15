@@ -20,11 +20,14 @@ const entryForms = {
     title: "End Shift",
     table: "shift_entries",
     mode: "update_open_shift",
-    status: "Close the open shift for this rider and date.",
+    status: "Pulled in from your open shift — adjust anything that needs it, then close it out.",
     fields: [
       { name: "platform_info", label: "", type: "static_info", value: "Amazon Flex · DLC8-Windsor", full: true },
       { name: "shift_date", label: "Date", type: "date", required: true },
+      { name: "start_km", label: "Start km", type: "number", required: true, min: "0", step: "0.1" },
       { name: "end_km", label: "End km", type: "number", required: true, min: "0", step: "0.1" },
+      { name: "shift_end_time", label: "Actual shift end time", type: "time", required: true },
+      { name: "expected_pay", label: "Expected pay", type: "number", min: "0", step: "0.01" },
       { name: "notes", label: "Shift notes", type: "textarea", full: true }
     ]
   },
@@ -98,6 +101,7 @@ const totalKm = document.getElementById("total-km");
 const totalEarnings = document.getElementById("total-earnings");
 const totalShifts = document.getElementById("total-shifts");
 const shiftList = document.getElementById("shift-list");
+let currentOpenShift = null;
 
 async function loadDashboardTotals() {
   if (!currentUser) {
@@ -225,36 +229,44 @@ async function insertEntry(table, payload) {
 }
 
 async function closeOpenShift(payload) {
-  const params = new URLSearchParams({
-    select: "id,expected_pay",
-    user_id: `eq.${currentUser.id}`,
-    rider_name: `eq.${payload.rider_name}`,
-    platform: `eq.${payload.platform}`,
-    shift_date: `eq.${payload.shift_date}`,
-    end_km: "is.null",
-    order: "created_at.desc",
-    limit: "1"
-  });
+  let shiftId = currentOpenShift?.id;
 
-  const lookup = await fetch(`${SUPABASE_URL}/rest/v1/shift_entries?${params.toString()}`, {
-    headers: supabaseHeaders()
-  });
+  if (!shiftId) {
+    const params = new URLSearchParams({
+      select: "id",
+      user_id: `eq.${currentUser.id}`,
+      rider_name: `eq.${payload.rider_name}`,
+      shift_date: `eq.${payload.shift_date}`,
+      end_km: "is.null",
+      order: "created_at.desc",
+      limit: "1"
+    });
 
-  if (!lookup.ok) {
-    const message = await lookup.text();
-    throw new Error(message || "Could not find open shift");
+    const lookup = await fetch(`${SUPABASE_URL}/rest/v1/shift_entries?${params.toString()}`, {
+      headers: supabaseHeaders()
+    });
+
+    if (!lookup.ok) {
+      const message = await lookup.text();
+      throw new Error(message || "Could not find open shift");
+    }
+
+    const matches = await lookup.json();
+    if (!matches.length) {
+      throw new Error("No open shift found for this rider and date");
+    }
+
+    shiftId = matches[0].id;
   }
 
-  const matches = await lookup.json();
-  if (!matches.length) {
-    throw new Error("No open shift found for this rider, date, and platform");
-  }
-
-  const response = await fetch(`${SUPABASE_URL}/rest/v1/shift_entries?id=eq.${matches[0].id}`, {
+  const response = await fetch(`${SUPABASE_URL}/rest/v1/shift_entries?id=eq.${shiftId}`, {
     method: "PATCH",
     headers: supabaseHeaders("return=minimal"),
     body: JSON.stringify({
+      start_km: payload.start_km,
       end_km: payload.end_km,
+      expected_pay: payload.expected_pay,
+      actual_end_time: payload.actual_end_time,
       notes: payload.notes
     })
   });
@@ -264,7 +276,28 @@ async function closeOpenShift(payload) {
     throw new Error(message || "Could not close shift");
   }
 
-  return matches[0];
+  return { id: shiftId };
+}
+
+async function fetchLatestOpenShift() {
+  if (!currentUser) {
+    return null;
+  }
+
+  const { data, error } = await supabaseClient
+    .from("shift_entries")
+    .select("id,shift_date,start_km,expected_pay")
+    .eq("user_id", currentUser.id)
+    .is("end_km", null)
+    .order("created_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
+  if (error) {
+    return null;
+  }
+
+  return data;
 }
 
 function openEntryForm(type, prefill) {
@@ -328,7 +361,10 @@ function buildSupabasePayload(config, data) {
     if (data.entry_type === "end_shift") {
       return {
         ...payload,
-        end_km: value("end_km")
+        start_km: value("start_km"),
+        end_km: value("end_km"),
+        expected_pay: value("expected_pay"),
+        actual_end_time: value("shift_end_time")
       };
     }
 
@@ -478,7 +514,27 @@ function setupBlockHoursUI() {
 }
 
 document.querySelectorAll("[data-entry]").forEach((button) => {
-  button.addEventListener("click", () => openEntryForm(button.dataset.entry));
+  button.addEventListener("click", async () => {
+    const type = button.dataset.entry;
+
+    if (type === "end_shift") {
+      if (!currentUser) {
+        return;
+      }
+      currentOpenShift = await fetchLatestOpenShift();
+      openEntryForm(type, currentOpenShift ? {
+        shift_date: currentOpenShift.shift_date,
+        start_km: currentOpenShift.start_km,
+        expected_pay: currentOpenShift.expected_pay
+      } : null);
+      if (!currentOpenShift) {
+        formStatus.textContent = "No open shift found — fill this in manually if you're sure one exists.";
+      }
+      return;
+    }
+
+    openEntryForm(type);
+  });
 });
 
 document.querySelectorAll("[data-close]").forEach((button) => {
@@ -518,7 +574,22 @@ entryForm.addEventListener("submit", async (event) => {
 
   try {
     if (config.mode === "update_open_shift") {
+      const hadPayAtStart = currentOpenShift?.expected_pay !== null && currentOpenShift?.expected_pay !== undefined;
       await closeOpenShift(payload);
+
+      if (!hadPayAtStart && payload.expected_pay !== null && payload.expected_pay !== undefined) {
+        await insertEntry("income_entries", {
+          user_id: currentUser.id,
+          rider_name: currentRiderName,
+          income_date: payload.shift_date,
+          platform: "Amazon Flex",
+          income_amount: payload.expected_pay,
+          tips_amount: 0,
+          notes: "Auto-logged from End Shift (pay filled in after start)"
+        });
+      }
+
+      currentOpenShift = null;
       formStatus.textContent = "Saved. You can close this form or add another entry.";
       entryForm.reset();
       setDefaultDate();
@@ -526,8 +597,7 @@ entryForm.addEventListener("submit", async (event) => {
       await loadRecentShifts();
       closeEntryForm();
       openEntryForm("income_tips", {
-        shift_date: payload.shift_date,
-        platform: payload.platform
+        shift_date: payload.shift_date
       });
       return;
     }
