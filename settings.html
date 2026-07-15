@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#0d1013" />
+  <meta name="robots" content="noindex, nofollow" />
+  <meta name="description" content="Account and privacy settings for Gig Work Hub." />
+  <title>Gig Work Hub | Settings</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body data-page="settings">
+  <div class="pin-gate" id="pin-gate">
+    <div class="pin-card">
+      <span class="brand-mark">GW</span>
+      <h1>Enter PIN</h1>
+      <p>This logbook is private. Enter your PIN to continue.</p>
+      <form id="pin-form">
+        <input class="pin-input" id="pin-input" type="password" inputmode="numeric" maxlength="8" autocomplete="off" autofocus>
+        <button class="submit-button" type="submit" style="width:100%">Unlock</button>
+        <span class="pin-error" id="pin-error"></span>
+      </form>
+    </div>
+  </div>
+
+  <section class="auth-gate" id="auth-gate">
+    <div class="auth-card">
+      <span class="brand-mark">GW</span>
+      <h1>Log in once.<br>Ride daily.</h1>
+      <p>This app is private. Accounts are created by the owner only — there is no public sign-up.</p>
+      <form class="auth-form" id="auth-form">
+        <div class="field">
+          <label for="auth-email">Email</label>
+          <input id="auth-email" name="email" type="email" autocomplete="email" required>
+        </div>
+        <div class="field">
+          <label for="auth-password">Password</label>
+          <input id="auth-password" name="password" type="password" autocomplete="current-password" required minlength="6">
+        </div>
+        <button class="submit-button" type="submit" id="auth-submit">Login</button>
+        <span class="auth-status" id="auth-status">Use the same phone browser and you should stay logged in.</span>
+      </form>
+    </div>
+  </section>
+
+  <main class="app" id="app" hidden>
+    <div class="phone">
+      <nav class="site-nav" aria-label="Primary">
+        <a class="site-nav-brand" href="index.html">
+          <span class="mark">GW</span>
+          <strong>Gig Work Hub</strong>
+        </a>
+        <div class="site-nav-links">
+          <a href="index.html" data-nav="dashboard">Dashboard</a>
+          <a href="history.html" data-nav="history">History</a>
+          <a href="tax-summary.html" data-nav="tax">Tax Summary</a>
+          <a href="settings.html" data-nav="settings">Settings</a>
+        </div>
+      </nav>
+
+      <div class="account-bar" id="account-bar">
+        <span class="account-profile">
+          <span class="account-avatar" id="account-avatar" aria-hidden="true">GW</span>
+          <span id="account-label">Logged in</span>
+        </span>
+        <button class="logout-button" type="button" id="logout-button">Logout</button>
+      </div>
+
+      <section class="section" aria-labelledby="settings-title">
+        <h2 class="section-title" id="settings-title">Settings</h2>
+
+        <div class="settings-card">
+          <h2>Account</h2>
+          <div class="settings-row"><span>Rider</span><span id="settings-rider-name">--</span></div>
+          <div class="settings-row"><span>Email</span><span id="settings-email">--</span></div>
+          <button class="tax-secondary-button" type="button" id="reset-password-button" style="margin-top:12px">Email me a password reset link</button>
+          <span class="form-status" id="reset-password-status"></span>
+        </div>
+
+        <div class="settings-card">
+          <h2>Saved station locations</h2>
+          <p>Autocomplete suggestions shown on the Start Shift form, built from your own logged shifts.</p>
+          <div id="settings-locations">Loading...</div>
+        </div>
+
+        <div class="settings-card">
+          <h2>Privacy</h2>
+          <p>How this logbook stays private:</p>
+          <div class="settings-row"><span>PIN lock</span><span>Enabled (soft deterrent only)</span></div>
+          <div class="settings-row"><span>Public sign-up</span><span>Disabled in the app UI</span></div>
+          <div class="settings-row"><span>Search engines</span><span>Blocked via robots.txt + noindex</span></div>
+          <div class="settings-row"><span>Data access</span><span>Row Level Security — only you can read your rows</span></div>
+          <p style="margin-top:12px">The PIN is stored in plain text inside <code>app-core.js</code> in the repo — it only stops casual visitors, not anyone who reads the source. Real data protection is your Supabase login plus Row Level Security. To change the PIN, edit the <code>SITE_PIN</code> value in <code>app-core.js</code> and redeploy.</p>
+        </div>
+
+        <div class="settings-card">
+          <h2>Danger zone</h2>
+          <p>Sign out of this device.</p>
+          <button class="danger-button" type="button" id="settings-logout-button">Log out</button>
+        </div>
+      </section>
+
+      <footer>
+        <span>Auto-saves to your Supabase database</span>
+        <span>Gig Work Hub 2026</span>
+      </footer>
+    </div>
+  </main>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="app-core.js"></script>
+  <script src="settings.js"></script>
+</body>
+</html>

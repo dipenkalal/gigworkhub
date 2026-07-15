@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#0d1013" />
+  <meta name="robots" content="noindex, nofollow" />
+  <meta name="description" content="Yearly tax summary and CSV export for Gig Work Hub." />
+  <title>Gig Work Hub | Tax Summary</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body data-page="tax">
+  <div class="pin-gate" id="pin-gate">
+    <div class="pin-card">
+      <span class="brand-mark">GW</span>
+      <h1>Enter PIN</h1>
+      <p>This logbook is private. Enter your PIN to continue.</p>
+      <form id="pin-form">
+        <input class="pin-input" id="pin-input" type="password" inputmode="numeric" maxlength="8" autocomplete="off" autofocus>
+        <button class="submit-button" type="submit" style="width:100%">Unlock</button>
+        <span class="pin-error" id="pin-error"></span>
+      </form>
+    </div>
+  </div>
+
+  <section class="auth-gate" id="auth-gate">
+    <div class="auth-card">
+      <span class="brand-mark">GW</span>
+      <h1>Log in once.<br>Ride daily.</h1>
+      <p>This app is private. Accounts are created by the owner only — there is no public sign-up.</p>
+      <form class="auth-form" id="auth-form">
+        <div class="field">
+          <label for="auth-email">Email</label>
+          <input id="auth-email" name="email" type="email" autocomplete="email" required>
+        </div>
+        <div class="field">
+          <label for="auth-password">Password</label>
+          <input id="auth-password" name="password" type="password" autocomplete="current-password" required minlength="6">
+        </div>
+        <button class="submit-button" type="submit" id="auth-submit">Login</button>
+        <span class="auth-status" id="auth-status">Use the same phone browser and you should stay logged in.</span>
+      </form>
+    </div>
+  </section>
+
+  <main class="app" id="app" hidden>
+    <div class="phone">
+      <nav class="site-nav" aria-label="Primary">
+        <a class="site-nav-brand" href="index.html">
+          <span class="mark">GW</span>
+          <strong>Gig Work Hub</strong>
+        </a>
+        <div class="site-nav-links">
+          <a href="index.html" data-nav="dashboard">Dashboard</a>
+          <a href="history.html" data-nav="history">History</a>
+          <a href="tax-summary.html" data-nav="tax">Tax Summary</a>
+          <a href="settings.html" data-nav="settings">Settings</a>
+        </div>
+      </nav>
+
+      <div class="account-bar" id="account-bar">
+        <span class="account-profile">
+          <span class="account-avatar" id="account-avatar" aria-hidden="true">GW</span>
+          <span id="account-label">Logged in</span>
+        </span>
+        <button class="logout-button" type="button" id="logout-button">Logout</button>
+      </div>
+
+      <section class="section" aria-labelledby="tax-title">
+        <h2 class="section-title" id="tax-title">Yearly tax summary</h2>
+
+        <div class="field">
+          <label for="tax-year">Year</label>
+          <select id="tax-year"></select>
+        </div>
+
+        <div class="tax-stats" id="tax-stats" style="margin-top:12px;">
+          <p class="shift-empty">Choose a year to see your summary.</p>
+        </div>
+
+        <div class="tax-actions" style="margin-top:14px;">
+          <button class="submit-button" type="button" id="download-summary-csv">Download summary CSV</button>
+          <button class="tax-secondary-button" type="button" id="download-detailed-csv">Download detailed CSV (all entries)</button>
+        </div>
+        <span class="form-status" id="tax-status">Detailed CSV includes every shift, fuel, repair, and income line for the year — hand this to your accountant or attach it with your CRA filing.</span>
+      </section>
+
+      <footer>
+        <span>Auto-saves to your Supabase database</span>
+        <span>Gig Work Hub 2026</span>
+      </footer>
+    </div>
+  </main>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="app-core.js"></script>
+  <script src="tax-summary.js"></script>
+</body>
+</html>
