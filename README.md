@@ -51,6 +51,28 @@ Odometer readings are intentionally separated:
 
 This prevents a fuel odometer reading from being treated like an end-shift odometer reading.
 
+## Amazon Flex Only
+
+The app no longer asks which gig platform or station you're at — every shift and income row is saved with `platform = "Amazon Flex"` and `station_location = "DLC8-Windsor"` automatically.
+
+Start Shift now also asks for:
+
+- **Block start time** — a time picker
+- **Block hours** — quick-select 3 or 3.5 hrs, or type any custom value
+- An **estimated block end time** is calculated automatically from those two and saved as `block_end_time`
+
+Before deploying this version, add the new columns to `shift_entries` in the Supabase SQL editor:
+
+```sql
+alter table shift_entries add column if not exists block_start_time text;
+alter table shift_entries add column if not exists block_hours numeric;
+alter table shift_entries add column if not exists block_end_time text;
+```
+
+## No PIN Gate
+
+The soft PIN gate has been removed entirely. Access control is Supabase Auth (owner-created accounts only) plus Row Level Security — there's no PIN to keep in sync anymore.
+
 ## Edit Rider Names
 
 Open `index.html` and update this array:

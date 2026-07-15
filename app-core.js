@@ -1,41 +1,5 @@
 // Gig Work Hub - shared core (auth, session, formatting) used by every page.
 
-/* ===================================================================
-   Soft PIN gate - a deterrent against casual visitors landing on the
-   site, NOT real security. Anyone who views this file's source can
-   read the PIN. Real protection is Supabase Auth + Row Level Security
-   below. Change the PIN any time by editing the line below and
-   re-deploying.
-=================================================================== */
-const SITE_PIN = "1590";
-
-(function runPinGate() {
-  if (sessionStorage.getItem("gwh_pin_ok") === "1") {
-    return;
-  }
-
-  const gate = document.getElementById("pin-gate");
-  if (!gate) {
-    return;
-  }
-
-  const form = document.getElementById("pin-form");
-  const input = document.getElementById("pin-input");
-  const error = document.getElementById("pin-error");
-
-  form.addEventListener("submit", (event) => {
-    event.preventDefault();
-    if (input.value === SITE_PIN) {
-      sessionStorage.setItem("gwh_pin_ok", "1");
-      gate.hidden = true;
-    } else {
-      error.textContent = "Wrong PIN. Try again.";
-      input.value = "";
-      input.focus();
-    }
-  });
-})();
-
 const SUPABASE_URL = "https://oumtpyrydlczmhxagbcq.supabase.co";
 const SUPABASE_KEY = "sb_publishable_zeny0sgq0oB5LvK2iTEAdw_rqBoFVXE";
 const DEFAULT_RIDER_NAME = "Rider";

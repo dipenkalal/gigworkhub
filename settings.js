@@ -2,7 +2,6 @@
 
 const settingsRiderName = document.getElementById("settings-rider-name");
 const settingsEmail = document.getElementById("settings-email");
-const settingsLocations = document.getElementById("settings-locations");
 const resetPasswordButton = document.getElementById("reset-password-button");
 const resetPasswordStatus = document.getElementById("reset-password-status");
 const settingsLogoutButton = document.getElementById("settings-logout-button");
@@ -14,26 +13,6 @@ async function loadSettings() {
 
   settingsRiderName.textContent = currentRiderName || "--";
   settingsEmail.textContent = currentUser.email || "--";
-
-  const { data, error } = await supabaseClient
-    .from("shift_entries")
-    .select("station_location")
-    .eq("user_id", currentUser.id)
-    .not("station_location", "is", null);
-
-  if (error) {
-    settingsLocations.textContent = "Could not load saved locations.";
-    return;
-  }
-
-  const unique = [...new Set(data.map((row) => row.station_location).filter(Boolean))];
-
-  if (!unique.length) {
-    settingsLocations.textContent = "No saved locations yet — they'll show up here once you log a station location on Start Shift.";
-    return;
-  }
-
-  settingsLocations.innerHTML = unique.map((loc) => `<span class="location-chip">${loc}</span>`).join("");
 }
 
 resetPasswordButton.addEventListener("click", async () => {
@@ -68,6 +47,5 @@ initApp({
   onSignedOut: () => {
     settingsRiderName.textContent = "--";
     settingsEmail.textContent = "--";
-    settingsLocations.textContent = "";
   }
 });

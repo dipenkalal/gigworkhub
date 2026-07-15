@@ -6,10 +6,12 @@ const entryForms = {
     table: "shift_entries",
     status: "Log your starting kilometres before the first delivery.",
     fields: [
+      { name: "platform_info", label: "", type: "static_info", value: "Amazon Flex · DLC8-Windsor", full: true },
       { name: "shift_date", label: "Date", type: "date", required: true },
-      { name: "platform", label: "Platform", type: "select", required: true, options: ["Uber", "DoorDash", "SkipTheDishes", "Amazon Flex", "Instacart", "Other"] },
       { name: "start_km", label: "Start km", type: "number", required: true, min: "0", step: "0.1" },
-      { name: "station_location", label: "Station location", type: "text", list: "station-locations" },
+      { name: "block_start_time", label: "Block start time", type: "time", required: true },
+      { name: "block_hours", label: "Block hours", type: "hours_quick", required: true },
+      { name: "block_end_time_preview", label: "Estimated block end time", type: "block_end_preview", full: true },
       { name: "expected_pay", label: "Expected pay (optional)", type: "number", min: "0", step: "0.01" },
       { name: "notes", label: "Notes", type: "textarea", full: true }
     ]
@@ -18,10 +20,10 @@ const entryForms = {
     title: "End Shift",
     table: "shift_entries",
     mode: "update_open_shift",
-    status: "Close the open shift for this rider, date, and platform.",
+    status: "Close the open shift for this rider and date.",
     fields: [
+      { name: "platform_info", label: "", type: "static_info", value: "Amazon Flex · DLC8-Windsor", full: true },
       { name: "shift_date", label: "Date", type: "date", required: true },
-      { name: "platform", label: "Platform", type: "select", required: true, options: ["Uber", "DoorDash", "SkipTheDishes", "Amazon Flex", "Instacart", "Other"] },
       { name: "end_km", label: "End km", type: "number", required: true, min: "0", step: "0.1" },
       { name: "notes", label: "Shift notes", type: "textarea", full: true }
     ]
@@ -52,10 +54,10 @@ const entryForms = {
   income: {
     title: "Platform Income",
     table: "income_entries",
-    status: "Log platform payouts and tips.",
+    status: "Log Amazon Flex payouts and tips.",
     fields: [
+      { name: "platform_info", label: "", type: "static_info", value: "Amazon Flex", full: true },
       { name: "shift_date", label: "Date", type: "date", required: true },
-      { name: "platform", label: "Platform", type: "select", required: true, options: ["Uber", "DoorDash", "SkipTheDishes", "Amazon Flex", "Instacart", "Other"] },
       { name: "income_amount", label: "Income", type: "number", required: true, min: "0", step: "0.01" },
       { name: "tips_amount", label: "Tips", type: "number", min: "0", step: "0.01" },
       { name: "notes", label: "Notes", type: "textarea", full: true }
@@ -67,8 +69,8 @@ const entryForms = {
     tipsOnly: true,
     status: "Pay was already logged when you started this shift — add any tips here.",
     fields: [
+      { name: "platform_info", label: "", type: "static_info", value: "Amazon Flex", full: true },
       { name: "shift_date", label: "Date", type: "date", required: true },
-      { name: "platform", label: "Platform", type: "select", required: true, options: ["Uber", "DoorDash", "SkipTheDishes", "Amazon Flex", "Instacart", "Other"] },
       { name: "tips_amount", label: "Tips", type: "number", required: true, min: "0", step: "0.01" },
       { name: "notes", label: "Notes", type: "textarea", full: true }
     ]
@@ -96,7 +98,6 @@ const totalKm = document.getElementById("total-km");
 const totalEarnings = document.getElementById("total-earnings");
 const totalShifts = document.getElementById("total-shifts");
 const shiftList = document.getElementById("shift-list");
-const stationLocationsList = document.getElementById("station-locations");
 
 async function loadDashboardTotals() {
   if (!currentUser) {
@@ -210,28 +211,6 @@ function renderShiftList(rows) {
   }).join("");
 }
 
-async function loadStationLocations() {
-  if (!currentUser) {
-    stationLocationsList.innerHTML = "";
-    return;
-  }
-
-  const { data, error } = await supabaseClient
-    .from("shift_entries")
-    .select("station_location")
-    .eq("user_id", currentUser.id)
-    .not("station_location", "is", null);
-
-  if (error) {
-    return;
-  }
-
-  const unique = [...new Set(data.map((row) => row.station_location).filter(Boolean))];
-  stationLocationsList.innerHTML = unique
-    .map((location) => `<option value="${location.replace(/"/g, "&quot;")}"></option>`)
-    .join("");
-}
-
 async function insertEntry(table, payload) {
   const response = await fetch(`${SUPABASE_URL}/rest/v1/${table}`, {
     method: "POST",
@@ -303,6 +282,7 @@ function openEntryForm(type, prefill) {
   modal.classList.add("open");
   modal.setAttribute("aria-hidden", "false");
   setDefaultDate();
+  setupBlockHoursUI();
 
   if (prefill) {
     Object.entries(prefill).forEach(([key, value]) => {
@@ -342,7 +322,7 @@ function buildSupabasePayload(config, data) {
     const payload = {
       ...base,
       shift_date: value("shift_date"),
-      platform: value("platform")
+      platform: "Amazon Flex"
     };
 
     if (data.entry_type === "end_shift") {
@@ -356,7 +336,10 @@ function buildSupabasePayload(config, data) {
       ...payload,
       entry_type: value("entry_type"),
       start_km: value("start_km"),
-      station_location: value("station_location"),
+      station_location: "DLC8-Windsor",
+      block_start_time: value("block_start_time"),
+      block_hours: value("block_hours"),
+      block_end_time: value("block_end_time"),
       expected_pay: value("expected_pay"),
       end_km: null
     };
@@ -384,7 +367,7 @@ function buildSupabasePayload(config, data) {
   return {
     ...base,
     income_date: value("shift_date"),
-    platform: value("platform"),
+    platform: "Amazon Flex",
     income_amount: config.tipsOnly ? 0 : value("income_amount"),
     tips_amount: value("tips_amount")
   };
@@ -397,6 +380,31 @@ function renderField(field) {
   const step = field.step ? ` step="${field.step}"` : "";
   const list = field.list ? ` list="${field.list}"` : "";
 
+  if (field.type === "static_info") {
+    return `<div class="field${full}"><div class="static-info-banner">${field.value}</div></div>`;
+  }
+
+  if (field.type === "hours_quick") {
+    return `
+      <div class="field${full}">
+        <label for="${field.name}">${field.label}</label>
+        <div class="hours-quick-row">
+          <button type="button" class="hours-quick-btn" data-hours="3">3 hrs</button>
+          <button type="button" class="hours-quick-btn" data-hours="3.5">3.5 hrs</button>
+        </div>
+        <input id="${field.name}" name="${field.name}" type="number" min="0" step="0.25"${required} placeholder="Or type custom hours">
+      </div>`;
+  }
+
+  if (field.type === "block_end_preview") {
+    return `
+      <div class="field${full}">
+        <label>${field.label}</label>
+        <div class="block-end-time-preview" id="block-end-time-preview">--:--</div>
+        <input type="hidden" name="block_end_time" id="block-end-time-hidden">
+      </div>`;
+  }
+
   if (field.type === "textarea") {
     return `<div class="field${full}"><label for="${field.name}">${field.label}</label><textarea id="${field.name}" name="${field.name}"${required}></textarea></div>`;
   }
@@ -407,6 +415,66 @@ function renderField(field) {
   }
 
   return `<div class="field${full}"><label for="${field.name}">${field.label}</label><input id="${field.name}" name="${field.name}" type="${field.type}"${required}${min}${step}${list}></div>`;
+}
+
+function formatTimeLabel(hhmm) {
+  const [h, m] = hhmm.split(":").map(Number);
+  const period = h >= 12 ? "PM" : "AM";
+  const hour12 = ((h + 11) % 12) + 1;
+  return `${hour12}:${String(m).padStart(2, "0")} ${period}`;
+}
+
+function computeBlockEndTime(startTime, hours) {
+  const hoursNumber = Number(hours);
+  if (!startTime || !Number.isFinite(hoursNumber) || hoursNumber <= 0) {
+    return null;
+  }
+  const [h, m] = startTime.split(":").map(Number);
+  if (!Number.isFinite(h) || !Number.isFinite(m)) {
+    return null;
+  }
+  const totalMinutes = h * 60 + m + Math.round(hoursNumber * 60);
+  const endH = Math.floor((totalMinutes / 60)) % 24;
+  const endM = totalMinutes % 60;
+  return `${String(endH).padStart(2, "0")}:${String(endM).padStart(2, "0")}`;
+}
+
+function setupBlockHoursUI() {
+  const startInput = entryForm.querySelector('[name="block_start_time"]');
+  const hoursInput = entryForm.querySelector('[name="block_hours"]');
+  const hiddenEnd = document.getElementById("block-end-time-hidden");
+  const preview = document.getElementById("block-end-time-preview");
+  const quickButtons = entryForm.querySelectorAll(".hours-quick-btn");
+
+  if (!startInput || !hoursInput) {
+    return;
+  }
+
+  function updatePreview() {
+    const computed = computeBlockEndTime(startInput.value, hoursInput.value);
+    if (preview) {
+      preview.textContent = computed ? formatTimeLabel(computed) : "--:--";
+    }
+    if (hiddenEnd) {
+      hiddenEnd.value = computed || "";
+    }
+  }
+
+  quickButtons.forEach((button) => {
+    button.addEventListener("click", () => {
+      hoursInput.value = button.dataset.hours;
+      quickButtons.forEach((btn) => btn.classList.toggle("active", btn === button));
+      updatePreview();
+    });
+  });
+
+  startInput.addEventListener("input", updatePreview);
+  hoursInput.addEventListener("input", () => {
+    quickButtons.forEach((btn) => btn.classList.remove("active"));
+    updatePreview();
+  });
+
+  updatePreview();
 }
 
 document.querySelectorAll("[data-entry]").forEach((button) => {
@@ -483,7 +551,6 @@ entryForm.addEventListener("submit", async (event) => {
     setDefaultDate();
     await loadDashboardTotals();
     await loadRecentShifts();
-    await loadStationLocations();
   } catch (error) {
     formStatus.textContent = error.message || "Could not save. Confirm the Supabase tables and policies are set up.";
   } finally {
@@ -495,11 +562,9 @@ initApp({
   onSignedIn: async () => {
     await loadDashboardTotals();
     await loadRecentShifts();
-    await loadStationLocations();
   },
   onSignedOut: () => {
     renderDashboardTotals({ kilometres: 0, earnings: 0, shifts: 0 });
     renderShiftList([]);
-    stationLocationsList.innerHTML = "";
   }
 });

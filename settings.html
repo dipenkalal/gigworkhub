@@ -10,19 +10,6 @@
   <link rel="stylesheet" href="styles.css" />
 </head>
 <body data-page="settings">
-  <!-- <div class="pin-gate" id="pin-gate">
-    <div class="pin-card">
-      <span class="brand-mark">GW</span>
-      <h1>Enter PIN</h1>
-      <p>This logbook is private. Enter your PIN to continue.</p>
-      <form id="pin-form">
-        <input class="pin-input" id="pin-input" type="password" inputmode="numeric" maxlength="8" autocomplete="off" autofocus>
-        <button class="submit-button" type="submit" style="width:100%">Unlock</button>
-        <span class="pin-error" id="pin-error"></span>
-      </form>
-    </div>
-  </div> -->
-
   <section class="auth-gate" id="auth-gate">
     <div class="auth-card">
       <span class="brand-mark">GW</span>
@@ -78,19 +65,12 @@
         </div>
 
         <div class="settings-card">
-          <h2>Saved station locations</h2>
-          <p>Autocomplete suggestions shown on the Start Shift form, built from your own logged shifts.</p>
-          <div id="settings-locations">Loading...</div>
-        </div>
-
-        <div class="settings-card">
           <h2>Privacy</h2>
           <p>How this logbook stays private:</p>
-          <div class="settings-row"><span>PIN lock</span><span>Enabled (soft deterrent only)</span></div>
           <div class="settings-row"><span>Public sign-up</span><span>Disabled in the app UI</span></div>
           <div class="settings-row"><span>Search engines</span><span>Blocked via robots.txt + noindex</span></div>
           <div class="settings-row"><span>Data access</span><span>Row Level Security — only you can read your rows</span></div>
-          <p style="margin-top:12px">The PIN is stored in plain text inside <code>app-core.js</code> in the repo — it only stops casual visitors, not anyone who reads the source. Real data protection is your Supabase login plus Row Level Security. To change the PIN, edit the <code>SITE_PIN</code> value in <code>app-core.js</code> and redeploy.</p>
+          <p style="margin-top:12px">Accounts are created by the owner only, and each account can only read its own rows thanks to Row Level Security. There is no separate PIN — Supabase login is the access control.</p>
         </div>
 
         <div class="settings-card">
