@@ -73,6 +73,23 @@
     </div>
   </main>
 
+  <div class="modal" id="edit-modal" aria-hidden="true">
+    <div class="modal-panel" role="dialog" aria-modal="true" aria-labelledby="edit-modal-title">
+      <div class="modal-head">
+        <h2 id="edit-modal-title">Edit shift</h2>
+        <button class="close-button" type="button" data-close aria-label="Close form">&times;</button>
+      </div>
+      <form class="entry-form" id="edit-form">
+        <input type="hidden" name="id" id="edit-shift-id">
+        <div class="form-grid" id="edit-form-fields"></div>
+        <div class="submit-row">
+          <button class="submit-button" type="submit">Save changes</button>
+          <span class="form-status" id="edit-form-status">Editing this shift.</span>
+        </div>
+      </form>
+    </div>
+  </div>
+
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="app-core.js"></script>
   <script src="history.js"></script>

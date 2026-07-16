@@ -315,7 +315,7 @@ function openEntryForm(type, prefill) {
   modal.classList.add("open");
   modal.setAttribute("aria-hidden", "false");
   setDefaultDate();
-  setupBlockHoursUI();
+  setupBlockHoursUI(entryForm);
 
   if (prefill) {
     Object.entries(prefill).forEach(([key, value]) => {
@@ -407,110 +407,6 @@ function buildSupabasePayload(config, data) {
     income_amount: config.tipsOnly ? 0 : value("income_amount"),
     tips_amount: value("tips_amount")
   };
-}
-
-function renderField(field) {
-  const required = field.required ? " required" : "";
-  const full = field.full ? " full" : "";
-  const min = field.min ? ` min="${field.min}"` : "";
-  const step = field.step ? ` step="${field.step}"` : "";
-  const list = field.list ? ` list="${field.list}"` : "";
-
-  if (field.type === "static_info") {
-    return `<div class="field${full}"><div class="static-info-banner">${field.value}</div></div>`;
-  }
-
-  if (field.type === "hours_quick") {
-    return `
-      <div class="field${full}">
-        <label for="${field.name}">${field.label}</label>
-        <div class="hours-quick-row">
-          <button type="button" class="hours-quick-btn" data-hours="3">3 hrs</button>
-          <button type="button" class="hours-quick-btn" data-hours="3.5">3.5 hrs</button>
-        </div>
-        <input id="${field.name}" name="${field.name}" type="number" min="0" step="0.25"${required} placeholder="Or type custom hours">
-      </div>`;
-  }
-
-  if (field.type === "block_end_preview") {
-    return `
-      <div class="field${full}">
-        <label>${field.label}</label>
-        <div class="block-end-time-preview" id="block-end-time-preview">--:--</div>
-        <input type="hidden" name="block_end_time" id="block-end-time-hidden">
-      </div>`;
-  }
-
-  if (field.type === "textarea") {
-    return `<div class="field${full}"><label for="${field.name}">${field.label}</label><textarea id="${field.name}" name="${field.name}"${required}></textarea></div>`;
-  }
-
-  if (field.type === "select") {
-    const options = field.options.map((option) => `<option value="${option}">${option}</option>`).join("");
-    return `<div class="field${full}"><label for="${field.name}">${field.label}</label><select id="${field.name}" name="${field.name}"${required}><option value="">Choose...</option>${options}</select></div>`;
-  }
-
-  return `<div class="field${full}"><label for="${field.name}">${field.label}</label><input id="${field.name}" name="${field.name}" type="${field.type}"${required}${min}${step}${list}></div>`;
-}
-
-function formatTimeLabel(hhmm) {
-  const [h, m] = hhmm.split(":").map(Number);
-  const period = h >= 12 ? "PM" : "AM";
-  const hour12 = ((h + 11) % 12) + 1;
-  return `${hour12}:${String(m).padStart(2, "0")} ${period}`;
-}
-
-function computeBlockEndTime(startTime, hours) {
-  const hoursNumber = Number(hours);
-  if (!startTime || !Number.isFinite(hoursNumber) || hoursNumber <= 0) {
-    return null;
-  }
-  const [h, m] = startTime.split(":").map(Number);
-  if (!Number.isFinite(h) || !Number.isFinite(m)) {
-    return null;
-  }
-  const totalMinutes = h * 60 + m + Math.round(hoursNumber * 60);
-  const endH = Math.floor((totalMinutes / 60)) % 24;
-  const endM = totalMinutes % 60;
-  return `${String(endH).padStart(2, "0")}:${String(endM).padStart(2, "0")}`;
-}
-
-function setupBlockHoursUI() {
-  const startInput = entryForm.querySelector('[name="block_start_time"]');
-  const hoursInput = entryForm.querySelector('[name="block_hours"]');
-  const hiddenEnd = document.getElementById("block-end-time-hidden");
-  const preview = document.getElementById("block-end-time-preview");
-  const quickButtons = entryForm.querySelectorAll(".hours-quick-btn");
-
-  if (!startInput || !hoursInput) {
-    return;
-  }
-
-  function updatePreview() {
-    const computed = computeBlockEndTime(startInput.value, hoursInput.value);
-    if (preview) {
-      preview.textContent = computed ? formatTimeLabel(computed) : "--:--";
-    }
-    if (hiddenEnd) {
-      hiddenEnd.value = computed || "";
-    }
-  }
-
-  quickButtons.forEach((button) => {
-    button.addEventListener("click", () => {
-      hoursInput.value = button.dataset.hours;
-      quickButtons.forEach((btn) => btn.classList.toggle("active", btn === button));
-      updatePreview();
-    });
-  });
-
-  startInput.addEventListener("input", updatePreview);
-  hoursInput.addEventListener("input", () => {
-    quickButtons.forEach((btn) => btn.classList.remove("active"));
-    updatePreview();
-  });
-
-  updatePreview();
 }
 
 document.querySelectorAll("[data-entry]").forEach((button) => {

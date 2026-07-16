@@ -571,6 +571,20 @@
       border-bottom: 0;
     }
 
+    .shift-row-editable {
+      cursor: pointer;
+      border-radius: 12px;
+      transition: background 0.15s ease;
+    }
+
+    .shift-row-editable:hover {
+      background: rgba(255, 106, 19, 0.08);
+    }
+
+    .shift-row-editable:active {
+      background: rgba(255, 106, 19, 0.14);
+    }
+
     .shift-date {
       display: block;
       font-size: 14px;
