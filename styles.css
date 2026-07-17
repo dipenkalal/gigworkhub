@@ -585,6 +585,34 @@
       background: rgba(255, 106, 19, 0.14);
     }
 
+    .pay-period-group + .pay-period-group {
+      border-top: 1px solid var(--line);
+    }
+
+    .pay-period-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 11px 16px;
+      background: rgba(255, 106, 19, 0.07);
+      border-bottom: 1px solid var(--line);
+    }
+
+    .pay-period-range {
+      font-weight: 800;
+      font-size: 12px;
+      letter-spacing: 0.03em;
+      text-transform: uppercase;
+      color: var(--text);
+    }
+
+    .pay-period-payout {
+      font-weight: 800;
+      font-size: 12px;
+      color: var(--accent);
+    }
+
     .shift-date {
       display: block;
       font-size: 14px;

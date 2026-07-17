@@ -13,6 +13,82 @@ function dateLabelFor(dateStr) {
   });
 }
 
+function shortDateLabelFor(date) {
+  return date.toLocaleDateString("en-CA", { weekday: "short", month: "short", day: "numeric" });
+}
+
+// Amazon Flex pay period: Wednesday 12:00am through the following Tuesday 11:59pm,
+// paid out into the bank on the Wednesday after the period closes.
+function getPayPeriod(dateStr) {
+  const d = new Date(`${dateStr}T00:00:00`);
+  const day = d.getDay(); // 0 = Sun ... 3 = Wed ... 6 = Sat
+  const daysSinceWednesday = (day - 3 + 7) % 7;
+
+  const start = new Date(d);
+  start.setDate(d.getDate() - daysSinceWednesday);
+
+  const end = new Date(start);
+  end.setDate(start.getDate() + 6);
+
+  const payoutDate = new Date(start);
+  payoutDate.setDate(start.getDate() + 7);
+
+  return { start, end, payoutDate };
+}
+
+function payPeriodKey(date) {
+  const y = date.getFullYear();
+  const m = String(date.getMonth() + 1).padStart(2, "0");
+  const d = String(date.getDate()).padStart(2, "0");
+  return `${y}-${m}-${d}`;
+}
+
+function renderIncomeGroupedByPayPeriod(rows) {
+  const groups = new Map();
+
+  rows.forEach((row) => {
+    const period = getPayPeriod(row.income_date);
+    const key = payPeriodKey(period.start);
+
+    if (!groups.has(key)) {
+      groups.set(key, { period, rows: [], total: 0 });
+    }
+
+    const group = groups.get(key);
+    const amount = Number(row.income_amount || 0) + Number(row.tips_amount || 0);
+    group.rows.push(row);
+    group.total += amount;
+  });
+
+  const sortedKeys = [...groups.keys()].sort((a, b) => (a < b ? 1 : -1));
+
+  return sortedKeys.map((key) => {
+    const group = groups.get(key);
+    const rangeLabel = `${shortDateLabelFor(group.period.start)} \u2013 ${shortDateLabelFor(group.period.end)}`;
+    const payoutLabel = shortDateLabelFor(group.period.payoutDate);
+
+    const rowsHtml = group.rows.map((row) => `
+      <div class="shift-row">
+        <div>
+          <span class="shift-date">${dateLabelFor(row.income_date)} - ${row.platform || "Platform"}</span>
+          <span class="shift-meta">${row.tips_amount ? `Tips: ${formatCurrency(Number(row.tips_amount))}` : (row.notes || "")}</span>
+        </div>
+        <div class="shift-side">
+          <span class="shift-pay">${formatCurrency(Number(row.income_amount || 0) + Number(row.tips_amount || 0))}</span>
+        </div>
+      </div>`).join("");
+
+    return `
+      <div class="pay-period-group">
+        <div class="pay-period-header">
+          <span class="pay-period-range">${rangeLabel}</span>
+          <span class="pay-period-payout">Paid ${payoutLabel} · ${formatCurrency(group.total)}</span>
+        </div>
+        ${rowsHtml}
+      </div>`;
+  }).join("");
+}
+
 async function loadTab(tab) {
   if (!currentUser) {
     historyList.innerHTML = '<p class="shift-empty">Please log in first.</p>';
@@ -85,16 +161,7 @@ async function loadTab(tab) {
       return;
     }
 
-    historyList.innerHTML = data.map((row) => `
-      <div class="shift-row">
-        <div>
-          <span class="shift-date">${dateLabelFor(row.income_date)} - ${row.platform || "Platform"}</span>
-          <span class="shift-meta">${row.tips_amount ? `Tips: ${formatCurrency(Number(row.tips_amount))}` : (row.notes || "")}</span>
-        </div>
-        <div class="shift-side">
-          <span class="shift-pay">${formatCurrency(Number(row.income_amount || 0) + Number(row.tips_amount || 0))}</span>
-        </div>
-      </div>`).join("");
+    historyList.innerHTML = renderIncomeGroupedByPayPeriod(data);
     return;
   }
 
