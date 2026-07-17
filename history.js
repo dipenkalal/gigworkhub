@@ -120,7 +120,7 @@ async function loadTab(tab) {
     return;
   }
 
-  historyList.classList.toggle("cards", tab === "shifts" || tab === "income");
+  historyList.classList.add("cards");
   historyList.innerHTML = '<p class="shift-empty">Loading...</p>';
 
   if (tab === "shifts") {
@@ -210,14 +210,12 @@ async function loadTab(tab) {
     }
 
     historyList.innerHTML = data.map((row) => `
-      <div class="shift-row">
-        <div>
+      <div class="shift-card">
+        <div class="shift-card-head">
           <span class="shift-date">${dateLabelFor(row.fuel_date)}</span>
-          <span class="shift-meta">${row.fuel_litres ? `${row.fuel_litres} L` : ""}${row.odometer_km ? ` at ${formatNumber(row.odometer_km)} km` : ""}</span>
         </div>
-        <div class="shift-side">
-          <span class="shift-pay">${formatCurrency(row.fuel_cost)}</span>
-        </div>
+        <span class="shift-meta">${row.fuel_litres ? `${row.fuel_litres} L` : ""}${row.odometer_km ? ` at ${formatNumber(row.odometer_km)} km` : ""}</span>
+        <span class="shift-pay">${formatCurrency(row.fuel_cost)}</span>
       </div>`).join("");
     return;
   }
@@ -240,14 +238,12 @@ async function loadTab(tab) {
   }
 
   historyList.innerHTML = data.map((row) => `
-    <div class="shift-row">
-      <div>
+    <div class="shift-card">
+      <div class="shift-card-head">
         <span class="shift-date">${dateLabelFor(row.repair_date)} - ${row.repair_type || "Repair"}</span>
-        <span class="shift-meta">${row.notes || ""}</span>
       </div>
-      <div class="shift-side">
-        <span class="shift-pay">${formatCurrency(row.repair_cost)}</span>
-      </div>
+      <span class="shift-meta">${row.notes || ""}</span>
+      <span class="shift-pay">${formatCurrency(row.repair_cost)}</span>
     </div>`).join("");
 }
 
