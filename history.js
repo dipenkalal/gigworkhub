@@ -66,6 +66,8 @@ function renderIncomeGroupedByPayPeriod(rows) {
     const group = groups.get(key);
     const rangeLabel = `${shortDateLabelFor(group.period.start)} \u2013 ${shortDateLabelFor(group.period.end)}`;
     const payoutLabel = shortDateLabelFor(group.period.payoutDate);
+    const isPaidAlready = group.period.payoutDate.getTime() <= new Date().setHours(0, 0, 0, 0);
+    const payoutVerb = isPaidAlready ? "Paid" : "Pays";
 
     const rowsHtml = group.rows.map((row) => `
       <div class="shift-row">
@@ -82,7 +84,7 @@ function renderIncomeGroupedByPayPeriod(rows) {
       <div class="pay-period-group">
         <div class="pay-period-header">
           <span class="pay-period-range">${rangeLabel}</span>
-          <span class="pay-period-payout">Paid ${payoutLabel} · ${formatCurrency(group.total)}</span>
+          <span class="pay-period-payout${isPaidAlready ? "" : " pending"}">${payoutVerb} ${payoutLabel} · ${formatCurrency(group.total)}</span>
         </div>
         ${rowsHtml}
       </div>`;
@@ -91,10 +93,12 @@ function renderIncomeGroupedByPayPeriod(rows) {
 
 async function loadTab(tab) {
   if (!currentUser) {
+    historyList.classList.remove("cards");
     historyList.innerHTML = '<p class="shift-empty">Please log in first.</p>';
     return;
   }
 
+  historyList.classList.toggle("cards", tab === "shifts");
   historyList.innerHTML = '<p class="shift-empty">Loading...</p>';
 
   if (tab === "shifts") {
@@ -129,15 +133,13 @@ async function loadTab(tab) {
       const locationLabel = row.station_location || "No location saved";
 
       return `
-        <div class="shift-row shift-row-editable" data-shift-id="${row.id}">
-          <div>
+        <div class="shift-card shift-row-editable" data-shift-id="${row.id}">
+          <div class="shift-card-head">
             <span class="shift-date">${dateLabelFor(row.shift_date)} - ${row.platform || "Platform"}</span>
-            <span class="shift-meta">${locationLabel}</span>
-          </div>
-          <div class="shift-side">
-            <span class="shift-pay">${payLabel}</span>
             <span class="shift-status${isOpen ? " open" : ""}">${isOpen ? "Open" : kmLabel}</span>
           </div>
+          <span class="shift-meta">${locationLabel}</span>
+          <span class="shift-pay">${payLabel}</span>
         </div>`;
     }).join("");
     return;

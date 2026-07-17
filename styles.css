@@ -613,6 +613,10 @@
       color: var(--accent);
     }
 
+    .pay-period-payout.pending {
+      color: var(--soft);
+    }
+
     .shift-date {
       display: block;
       font-size: 14px;
@@ -648,6 +652,70 @@
     .shift-status.open {
       color: var(--mustard);
       font-weight: 800;
+    }
+
+    .shift-list.cards {
+      border: none;
+      background: transparent;
+      overflow: visible;
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
+      gap: 12px;
+    }
+
+    .shift-card {
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      background: var(--card);
+      padding: 14px 16px;
+      display: flex;
+      flex-direction: column;
+      cursor: pointer;
+      transition: background 0.15s ease, border-color 0.15s ease;
+    }
+
+    .shift-card:hover {
+      border-color: rgba(255, 106, 19, 0.45);
+      background: rgba(255, 106, 19, 0.07);
+    }
+
+    .shift-card:active {
+      background: rgba(255, 106, 19, 0.13);
+    }
+
+    .shift-card-head {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 10px;
+    }
+
+    .shift-card .shift-date {
+      font-size: 13px;
+    }
+
+    .shift-card .shift-pay {
+      margin-top: 10px;
+      font-size: 17px;
+    }
+
+    .shift-card .shift-status {
+      flex: 0 0 auto;
+      white-space: nowrap;
+      margin-top: 0;
+      font-size: 10.5px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+      padding: 3px 8px;
+      border-radius: 999px;
+      border: 1px solid var(--line);
+      color: var(--muted);
+    }
+
+    .shift-card .shift-status.open {
+      color: var(--mustard);
+      border-color: rgba(230, 179, 61, 0.4);
     }
 
     .tax-summary-button {
