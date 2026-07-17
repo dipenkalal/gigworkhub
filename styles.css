@@ -585,18 +585,19 @@
       background: rgba(255, 106, 19, 0.14);
     }
 
-    .pay-period-group + .pay-period-group {
-      border-top: 1px solid var(--line);
+    .pay-period-card {
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      background: var(--card);
+      padding: 14px 16px;
+      display: flex;
+      flex-direction: column;
     }
 
-    .pay-period-header {
+    .pay-period-card-head {
       display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 12px;
-      padding: 11px 16px;
-      background: rgba(255, 106, 19, 0.07);
-      border-bottom: 1px solid var(--line);
+      flex-direction: column;
+      gap: 4px;
     }
 
     .pay-period-range {
@@ -608,13 +609,43 @@
     }
 
     .pay-period-payout {
-      font-weight: 800;
-      font-size: 12px;
+      font-weight: 700;
+      font-size: 11.5px;
       color: var(--accent);
     }
 
     .pay-period-payout.pending {
       color: var(--soft);
+    }
+
+    .pay-period-card-total {
+      margin-top: 10px;
+      font-weight: 800;
+      font-size: 20px;
+      color: var(--accent);
+    }
+
+    .pay-period-card-entries {
+      margin-top: 10px;
+      padding-top: 10px;
+      border-top: 1px solid var(--line);
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .pay-period-entry {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      font-size: 12px;
+      color: var(--muted);
+    }
+
+    .pay-period-entry span:last-child {
+      color: var(--text);
+      font-weight: 700;
     }
 
     .shift-date {
@@ -697,6 +728,13 @@
     .shift-card .shift-pay {
       margin-top: 10px;
       font-size: 17px;
+    }
+
+    .shift-card-block {
+      display: block;
+      margin-top: 4px;
+      font-size: 11.5px;
+      color: var(--soft);
     }
 
     .shift-card .shift-status {

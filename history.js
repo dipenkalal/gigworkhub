@@ -17,6 +17,30 @@ function shortDateLabelFor(date) {
   return date.toLocaleDateString("en-CA", { weekday: "short", month: "short", day: "numeric" });
 }
 
+// Builds a compact "9:00 AM · 3.5 hrs · ends 12:30 PM" style summary from a shift row.
+// Prefers the actual recorded end time over the estimated block end time.
+function blockSummaryFor(row) {
+  const parts = [];
+
+  if (row.block_start_time) {
+    parts.push(formatTimeLabel(row.block_start_time));
+  }
+
+  if (row.block_hours !== null && row.block_hours !== undefined && row.block_hours !== "") {
+    const hours = Number(row.block_hours);
+    if (Number.isFinite(hours)) {
+      parts.push(`${hours} hr${hours === 1 ? "" : "s"}`);
+    }
+  }
+
+  const endTime = row.actual_end_time || row.block_end_time;
+  if (endTime) {
+    parts.push(`ends ${formatTimeLabel(endTime)}`);
+  }
+
+  return parts.length ? parts.join(" \u00b7 ") : null;
+}
+
 // Amazon Flex pay period: Wednesday 12:00am through the following Tuesday 11:59pm,
 // paid out into the bank on the Wednesday after the period closes.
 function getPayPeriod(dateStr) {
@@ -69,24 +93,22 @@ function renderIncomeGroupedByPayPeriod(rows) {
     const isPaidAlready = group.period.payoutDate.getTime() <= new Date().setHours(0, 0, 0, 0);
     const payoutVerb = isPaidAlready ? "Paid" : "Pays";
 
-    const rowsHtml = group.rows.map((row) => `
-      <div class="shift-row">
-        <div>
-          <span class="shift-date">${dateLabelFor(row.income_date)} - ${row.platform || "Platform"}</span>
-          <span class="shift-meta">${row.tips_amount ? `Tips: ${formatCurrency(Number(row.tips_amount))}` : (row.notes || "")}</span>
-        </div>
-        <div class="shift-side">
-          <span class="shift-pay">${formatCurrency(Number(row.income_amount || 0) + Number(row.tips_amount || 0))}</span>
-        </div>
+    const entriesHtml = group.rows.map((row) => `
+      <div class="pay-period-entry">
+        <span>${dateLabelFor(row.income_date)}</span>
+        <span>${formatCurrency(Number(row.income_amount || 0) + Number(row.tips_amount || 0))}</span>
       </div>`).join("");
 
     return `
-      <div class="pay-period-group">
-        <div class="pay-period-header">
+      <div class="pay-period-card">
+        <div class="pay-period-card-head">
           <span class="pay-period-range">${rangeLabel}</span>
-          <span class="pay-period-payout${isPaidAlready ? "" : " pending"}">${payoutVerb} ${payoutLabel} · ${formatCurrency(group.total)}</span>
+          <span class="pay-period-payout${isPaidAlready ? "" : " pending"}">${payoutVerb} ${payoutLabel}</span>
         </div>
-        ${rowsHtml}
+        <div class="pay-period-card-total">${formatCurrency(group.total)}</div>
+        <div class="pay-period-card-entries">
+          ${entriesHtml}
+        </div>
       </div>`;
   }).join("");
 }
@@ -98,7 +120,7 @@ async function loadTab(tab) {
     return;
   }
 
-  historyList.classList.toggle("cards", tab === "shifts");
+  historyList.classList.toggle("cards", tab === "shifts" || tab === "income");
   historyList.innerHTML = '<p class="shift-empty">Loading...</p>';
 
   if (tab === "shifts") {
@@ -131,6 +153,7 @@ async function loadTab(tab) {
         ? formatCurrency(Number(row.expected_pay))
         : "--";
       const locationLabel = row.station_location || "No location saved";
+      const blockLabel = blockSummaryFor(row);
 
       return `
         <div class="shift-card shift-row-editable" data-shift-id="${row.id}">
@@ -139,6 +162,7 @@ async function loadTab(tab) {
             <span class="shift-status${isOpen ? " open" : ""}">${isOpen ? "Open" : kmLabel}</span>
           </div>
           <span class="shift-meta">${locationLabel}</span>
+          ${blockLabel ? `<span class="shift-card-block">${blockLabel}</span>` : ""}
           <span class="shift-pay">${payLabel}</span>
         </div>`;
     }).join("");
