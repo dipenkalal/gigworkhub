@@ -62,10 +62,20 @@ function initialsFor(name) {
 
 function setActiveNav() {
   const page = document.body.dataset.page;
-  document.querySelectorAll(".site-nav-links a").forEach((link) => {
+  document.querySelectorAll(".nav-link").forEach((link) => {
     link.classList.toggle("active", link.dataset.nav === page);
   });
 }
+
+function registerServiceWorker() {
+  if ("serviceWorker" in navigator) {
+    window.addEventListener("load", () => {
+      navigator.serviceWorker.register("service-worker.js").catch(() => {});
+    });
+  }
+}
+
+registerServiceWorker();
 
 function renderField(field) {
   const required = field.required ? " required" : "";

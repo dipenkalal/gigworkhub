@@ -143,7 +143,9 @@
       line-height: 1.45;
     }
 
-    .phone {
+    .app-shell {
+      display: flex;
+      flex-direction: column;
       min-height: calc(100vh - 28px);
       border: 1px solid var(--line);
       border-radius: 32px;
@@ -1098,7 +1100,7 @@
         padding: 24px;
       }
 
-      .phone {
+      .app-shell {
         min-height: auto;
         border-radius: 34px;
       }
@@ -1141,7 +1143,7 @@
         padding: 0;
       }
 
-      .phone {
+      .app-shell {
         min-height: 100vh;
         border: 0;
         border-radius: 0;
@@ -1218,23 +1220,13 @@
       }
     }
 
-    /* ===== Multi-page nav ===== */
-    .site-nav {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      padding: 14px 20px 10px;
-      border-bottom: 1px solid var(--line);
-      background: rgba(255, 255, 255, 0.02);
-    }
-
+    /* ===== Multi-page nav: sidebar (desktop) + bottom tab bar (mobile) ===== */
     .site-nav-brand {
       display: flex;
       align-items: center;
       gap: 8px;
       text-decoration: none;
       color: var(--text);
-      margin-right: 4px;
     }
 
     .site-nav-brand .mark {
@@ -1256,37 +1248,129 @@
       white-space: nowrap;
     }
 
-    .site-nav-links {
-      display: flex;
-      gap: 4px;
-      overflow-x: auto;
-      flex: 1;
+    .app-sidebar {
+      display: none;
     }
 
-    .site-nav-links a {
-      flex: 0 0 auto;
-      padding: 8px 12px;
-      border-radius: 12px;
-      color: var(--muted);
+    .nav-link {
       text-decoration: none;
-      font-size: 12px;
+      color: var(--muted);
       font-weight: 800;
-      white-space: nowrap;
     }
 
-    .site-nav-links a:hover {
-      color: var(--text);
-      background: rgba(255, 255, 255, 0.05);
+    .app-tabbar {
+      position: fixed;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      z-index: 30;
+      display: flex;
+      justify-content: space-around;
+      align-items: center;
+      background: rgba(13, 16, 19, 0.94);
+      backdrop-filter: blur(18px);
+      border-top: 1px solid var(--line);
+      padding: 8px 6px calc(8px + env(safe-area-inset-bottom, 0px));
     }
 
-    .site-nav-links a.active {
-      color: #1f1204;
-      background: var(--accent);
+    .app-tabbar .nav-link {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 3px;
+      flex: 1;
+      padding: 5px 2px;
+      border-radius: 12px;
+      font-size: 10.5px;
+      text-align: center;
+    }
+
+    .app-tabbar .nav-link.active {
+      color: var(--accent);
+    }
+
+    .tab-icon {
+      font-size: 18px;
+      line-height: 1;
+    }
+
+    .app-main {
+      flex: 1;
+      min-width: 0;
+      display: flex;
+      flex-direction: column;
+      padding-bottom: 78px;
     }
 
     @media (max-width: 480px) {
       .site-nav-brand strong {
         display: none;
+      }
+    }
+
+    @media (min-width: 960px) {
+      .app {
+        width: min(100% - 64px, 1320px);
+      }
+
+      .app-tabbar {
+        display: none;
+      }
+
+      .app-main {
+        padding-bottom: 0;
+      }
+
+      .app-shell {
+        flex-direction: row;
+        align-items: stretch;
+      }
+
+      .app-sidebar {
+        display: flex;
+        flex-direction: column;
+        width: 232px;
+        flex-shrink: 0;
+        padding: 24px 16px;
+        border-right: 1px solid var(--line);
+        background: rgba(255, 255, 255, 0.02);
+      }
+
+      .app-sidebar .site-nav-brand {
+        padding: 0 10px;
+        margin-bottom: 22px;
+      }
+
+      .app-sidebar-links {
+        display: flex;
+        flex-direction: column;
+        gap: 3px;
+      }
+
+      .app-sidebar-links .nav-link {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 11px 14px;
+        border-radius: 14px;
+        font-size: 13.5px;
+      }
+
+      .app-sidebar-links .nav-link:hover {
+        color: var(--text);
+        background: rgba(255, 255, 255, 0.05);
+      }
+
+      .app-sidebar-links .nav-link.active {
+        color: #1f1204;
+        background: linear-gradient(135deg, var(--accent), var(--mustard));
+      }
+
+      .nav-icon {
+        font-size: 16px;
+        width: 20px;
+        text-align: center;
+        flex-shrink: 0;
       }
     }
 

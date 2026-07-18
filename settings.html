@@ -7,6 +7,11 @@
   <meta name="robots" content="noindex, nofollow" />
   <meta name="description" content="Account and privacy settings for Gig Work Hub." />
   <title>Gig Work Hub | Settings</title>
+  <link rel="manifest" href="manifest.json" />
+  <link rel="apple-touch-icon" href="apple-touch-icon.png" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="Gig Work Hub" />
   <link rel="stylesheet" href="styles.css" />
 </head>
 <body data-page="settings">
@@ -31,21 +36,22 @@
   </section>
 
   <main class="app" id="app" hidden>
-    <div class="phone">
-      <nav class="site-nav" aria-label="Primary">
+    <div class="app-shell">
+      <nav class="app-sidebar" aria-label="Primary">
         <a class="site-nav-brand" href="index.html">
           <span class="mark">GW</span>
           <strong>Gig Work Hub</strong>
         </a>
-        <div class="site-nav-links">
-          <a href="index.html" data-nav="dashboard">Dashboard</a>
-          <a href="history.html" data-nav="history">History</a>
-          <a href="tax-summary.html" data-nav="tax">Tax Summary</a>
-          <a href="settings.html" data-nav="settings">Settings</a>
+        <div class="app-sidebar-links">
+          <a class="nav-link" href="index.html" data-nav="dashboard"><span class="nav-icon" aria-hidden="true">&#8962;</span>Dashboard</a>
+          <a class="nav-link" href="history.html" data-nav="history"><span class="nav-icon" aria-hidden="true">&#9776;</span>History</a>
+          <a class="nav-link" href="tax-summary.html" data-nav="tax"><span class="nav-icon" aria-hidden="true">$</span>Tax Summary</a>
+          <a class="nav-link" href="settings.html" data-nav="settings"><span class="nav-icon" aria-hidden="true">&#9881;</span>Settings</a>
         </div>
       </nav>
 
-      <div class="account-bar" id="account-bar">
+      <div class="app-main">
+        <div class="account-bar" id="account-bar">
         <span class="account-profile">
           <span class="account-avatar" id="account-avatar" aria-hidden="true">GW</span>
           <span id="account-label">Logged in</span>
@@ -104,8 +110,16 @@
         <span>Auto-saves to your Supabase database</span>
         <span>Gig Work Hub 2026</span>
       </footer>
+      </div>
     </div>
   </main>
+
+  <nav class="app-tabbar" aria-label="Primary">
+    <a class="nav-link" href="index.html" data-nav="dashboard"><span class="tab-icon" aria-hidden="true">&#8962;</span><span>Dashboard</span></a>
+    <a class="nav-link" href="history.html" data-nav="history"><span class="tab-icon" aria-hidden="true">&#9776;</span><span>History</span></a>
+    <a class="nav-link" href="tax-summary.html" data-nav="tax"><span class="tab-icon" aria-hidden="true">$</span><span>Tax</span></a>
+    <a class="nav-link" href="settings.html" data-nav="settings"><span class="tab-icon" aria-hidden="true">&#9881;</span><span>Settings</span></a>
+  </nav>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="app-core.js"></script>
