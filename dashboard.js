@@ -202,15 +202,13 @@ function renderShiftList(rows) {
     });
 
     return `
-      <div class="shift-row">
-        <div>
+      <div class="shift-card">
+        <div class="shift-card-head">
           <span class="shift-date">${dateLabel} - ${row.platform || "Platform"}</span>
-          <span class="shift-meta">${locationLabel}</span>
-        </div>
-        <div class="shift-side">
-          <span class="shift-pay">${payLabel}</span>
           <span class="shift-status${isOpen ? " open" : ""}">${isOpen ? "Open" : kmLabel}</span>
         </div>
+        <span class="shift-meta">${locationLabel}</span>
+        <span class="shift-pay">${payLabel}</span>
       </div>`;
   }).join("");
 }
