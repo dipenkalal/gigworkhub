@@ -2,7 +2,7 @@
 // Purpose: satisfy PWA installability requirements and speed up repeat loads
 // of the static app shell. Data itself always comes fresh from Supabase.
 
-const CACHE_NAME = "gig-work-hub-shell-v1";
+const CACHE_NAME = "gig-work-hub-shell-v2";
 const SHELL_ASSETS = [
   "index.html",
   "history.html",
