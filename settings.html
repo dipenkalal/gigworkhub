@@ -64,18 +64,22 @@
         <h2 class="section-title" id="settings-title">Settings</h2>
 
         <div class="settings-card">
-          <h2>Account</h2>
+          <h2>Rider name</h2>
           <div class="field">
-            <label for="settings-rider-name-input">Rider name</label>
+            <label for="settings-rider-name-input">Name</label>
             <input id="settings-rider-name-input" type="text" maxlength="60">
           </div>
           <button class="submit-button" type="button" id="save-rider-name-button">Save name</button>
           <span class="form-status" id="rider-name-status"></span>
-          <div class="settings-row" style="margin-top:14px"><span>Email</span><span id="settings-email">--</span></div>
+        </div>
+
+        <div class="settings-card">
+          <h2>Email &amp; login</h2>
+          <div class="settings-row"><span>Current email</span><span id="settings-email">--</span></div>
           <button class="tax-secondary-button" type="button" id="reset-password-button" style="margin-top:12px">Email me a password reset link</button>
           <span class="form-status" id="reset-password-status"></span>
 
-          <div class="field" style="margin-top:14px">
+          <div class="field" style="margin-top:18px">
             <label for="settings-new-email-input">Change email</label>
             <input id="settings-new-email-input" type="email" placeholder="new@email.com">
           </div>

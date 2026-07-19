@@ -124,7 +124,7 @@ onClick(saveRiderNameButton, async () => {
   try {
     const { error } = await supabaseClient
       .from("rider_profiles")
-      .upsert({ user_id: currentUser.id, rider_name: newName });
+      .upsert({ user_id: currentUser.id, rider_name: newName }, { onConflict: "user_id" });
 
     if (error) throw error;
 
@@ -361,7 +361,7 @@ onClick(saveDefaultHoursButton, async () => {
   try {
     const { error } = await supabaseClient
       .from("rider_profiles")
-      .upsert({ user_id: currentUser.id, default_block_hours: hoursValue });
+      .upsert({ user_id: currentUser.id, default_block_hours: hoursValue }, { onConflict: "user_id" });
 
     if (error) throw error;
 

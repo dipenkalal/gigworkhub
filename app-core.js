@@ -48,7 +48,7 @@ async function getOrCreateRiderName(user) {
   }
 
   const fallbackName = metadataName || DEFAULT_RIDER_NAME;
-  await supabaseClient.from("rider_profiles").upsert({ user_id: user.id, rider_name: fallbackName });
+  await supabaseClient.from("rider_profiles").upsert({ user_id: user.id, rider_name: fallbackName }, { onConflict: "user_id" });
   return fallbackName;
 }
 
