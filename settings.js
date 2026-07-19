@@ -48,13 +48,19 @@ async function loadSettings() {
   settingsRiderNameInput.value = currentRiderName || "";
   settingsEmail.textContent = currentUser.email || "--";
 
-  if (currentDefaultBlockHours !== null && currentDefaultBlockHours !== undefined && defaultBlockHoursInput) {
-    defaultBlockHoursInput.value = currentDefaultBlockHours;
-    if (defaultHoursQuickRow) {
-      defaultHoursQuickRow.querySelectorAll(".hours-quick-btn").forEach((button) => {
-        button.classList.toggle("active", Number(button.dataset.hours) === Number(currentDefaultBlockHours));
-      });
+  try {
+    const savedDefault = typeof currentDefaultBlockHours !== "undefined" ? currentDefaultBlockHours : null;
+    if (savedDefault !== null && savedDefault !== undefined && defaultBlockHoursInput) {
+      defaultBlockHoursInput.value = savedDefault;
+      if (defaultHoursQuickRow) {
+        defaultHoursQuickRow.querySelectorAll(".hours-quick-btn").forEach((button) => {
+          button.classList.toggle("active", Number(button.dataset.hours) === Number(savedDefault));
+        });
+      }
     }
+  } catch (error) {
+    // A stale app-core.js on an older deploy might not define this yet -
+    // don't let it block the rest of the page from loading.
   }
 
   await loadStats();

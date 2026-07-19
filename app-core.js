@@ -9,6 +9,7 @@ const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 let currentUser = null;
 let currentRiderName = "";
 let currentAccessToken = null;
+let currentDefaultBlockHours = null;
 
 function supabaseHeaders(prefer) {
   const headers = {
@@ -36,9 +37,11 @@ async function getOrCreateRiderName(user) {
   const metadataName = user.user_metadata?.rider_name || "";
   const { data } = await supabaseClient
     .from("rider_profiles")
-    .select("rider_name")
+    .select("rider_name,default_block_hours")
     .eq("user_id", user.id)
     .maybeSingle();
+
+  currentDefaultBlockHours = data?.default_block_hours ?? null;
 
   if (data?.rider_name) {
     return data.rider_name;
@@ -59,6 +62,29 @@ function initialsFor(name) {
     .toUpperCase();
   return initials || "GW";
 }
+
+function getStoredTheme() {
+  try {
+    return localStorage.getItem("gwh_theme") || "dark";
+  } catch (error) {
+    return "dark";
+  }
+}
+
+function applyTheme(theme) {
+  document.body.classList.toggle("theme-light", theme === "light");
+}
+
+function setStoredTheme(theme) {
+  try {
+    localStorage.setItem("gwh_theme", theme);
+  } catch (error) {
+    // ignore - theme just won't persist
+  }
+  applyTheme(theme);
+}
+
+applyTheme(getStoredTheme());
 
 function setActiveNav() {
   const page = document.body.dataset.page;
