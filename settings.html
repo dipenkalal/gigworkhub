@@ -15,6 +15,7 @@
   <link rel="stylesheet" href="styles.css" />
 </head>
 <body data-page="settings">
+  <script>try{if(localStorage.getItem("gwh_theme")==="light"){document.body.classList.add("theme-light");}}catch(e){}</script>
   <section class="auth-gate" id="auth-gate">
     <div class="auth-card">
       <span class="brand-mark">GW</span>
@@ -73,6 +74,36 @@
           <div class="settings-row" style="margin-top:14px"><span>Email</span><span id="settings-email">--</span></div>
           <button class="tax-secondary-button" type="button" id="reset-password-button" style="margin-top:12px">Email me a password reset link</button>
           <span class="form-status" id="reset-password-status"></span>
+
+          <div class="field" style="margin-top:14px">
+            <label for="settings-new-email-input">Change email</label>
+            <input id="settings-new-email-input" type="email" placeholder="new@email.com">
+          </div>
+          <button class="tax-secondary-button" type="button" id="change-email-button">Update email</button>
+          <span class="form-status" id="change-email-status">You'll get a confirmation link at the new address before it switches over.</span>
+        </div>
+
+        <div class="settings-card">
+          <h2>Appearance</h2>
+          <div class="settings-row">
+            <span>Theme</span>
+            <span class="theme-toggle-group">
+              <span id="theme-label">Dark</span>
+              <button class="theme-switch" type="button" id="theme-switch" role="switch" aria-checked="false" aria-label="Toggle light/dark theme"></button>
+            </span>
+          </div>
+        </div>
+
+        <div class="settings-card">
+          <h2>Default block hours</h2>
+          <p>Pre-fills the Start Shift form so you don't have to pick it every time.</p>
+          <div class="hours-quick-row" id="default-hours-quick-row" style="margin-top:10px">
+            <button type="button" class="hours-quick-btn" data-hours="3">3 hrs</button>
+            <button type="button" class="hours-quick-btn" data-hours="3.5">3.5 hrs</button>
+          </div>
+          <input id="default-block-hours-input" type="number" min="0" step="0.25" placeholder="Or type custom hours">
+          <button class="submit-button" type="button" id="save-default-hours-button" style="margin-top:10px">Save default</button>
+          <span class="form-status" id="default-hours-status"></span>
         </div>
 
         <div class="settings-card">
@@ -103,6 +134,11 @@
           <h2>Danger zone</h2>
           <p>Sign out of this device.</p>
           <button class="danger-button" type="button" id="settings-logout-button">Log out</button>
+
+          <p style="margin-top:18px">Permanently delete every shift, income, fuel, and repair entry you've logged. This cannot be undone.</p>
+          <button class="danger-button" type="button" id="clear-data-button">Clear all my data</button>
+          <span class="form-status" id="clear-data-status"></span>
+          <p style="margin-top:12px">This clears your logged data but not your login itself — to fully remove your account, contact the app owner to delete it from the Supabase dashboard.</p>
         </div>
       </section>
 

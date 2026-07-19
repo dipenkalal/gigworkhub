@@ -1,5 +1,14 @@
 // Gig Work Hub - Settings page logic.
 
+// Guards against a partial deploy (HTML/JS out of sync) crashing the whole
+// script - a null element here would otherwise throw and stop initApp()
+// from ever running below, which is what breaks login on this page.
+function onClick(element, handler) {
+  if (element) {
+    element.addEventListener("click", handler);
+  }
+}
+
 const settingsRiderNameInput = document.getElementById("settings-rider-name-input");
 const saveRiderNameButton = document.getElementById("save-rider-name-button");
 const riderNameStatus = document.getElementById("rider-name-status");
@@ -39,11 +48,13 @@ async function loadSettings() {
   settingsRiderNameInput.value = currentRiderName || "";
   settingsEmail.textContent = currentUser.email || "--";
 
-  if (currentDefaultBlockHours !== null && currentDefaultBlockHours !== undefined) {
+  if (currentDefaultBlockHours !== null && currentDefaultBlockHours !== undefined && defaultBlockHoursInput) {
     defaultBlockHoursInput.value = currentDefaultBlockHours;
-    defaultHoursQuickRow.querySelectorAll(".hours-quick-btn").forEach((button) => {
-      button.classList.toggle("active", Number(button.dataset.hours) === Number(currentDefaultBlockHours));
-    });
+    if (defaultHoursQuickRow) {
+      defaultHoursQuickRow.querySelectorAll(".hours-quick-btn").forEach((button) => {
+        button.classList.toggle("active", Number(button.dataset.hours) === Number(currentDefaultBlockHours));
+      });
+    }
   }
 
   await loadStats();
@@ -90,7 +101,7 @@ async function loadStats() {
   statsTotalKm.textContent = `${formatNumber(totalKm)} km`;
 }
 
-saveRiderNameButton.addEventListener("click", async () => {
+onClick(saveRiderNameButton, async () => {
   if (!currentUser) {
     return;
   }
@@ -125,7 +136,7 @@ saveRiderNameButton.addEventListener("click", async () => {
   }
 });
 
-resetPasswordButton.addEventListener("click", async () => {
+onClick(resetPasswordButton, async () => {
   if (!currentUser?.email) {
     return;
   }
@@ -142,7 +153,7 @@ resetPasswordButton.addEventListener("click", async () => {
   }
 });
 
-settingsLogoutButton.addEventListener("click", async () => {
+onClick(settingsLogoutButton, async () => {
   await supabaseClient.auth.signOut();
   currentUser = null;
   currentRiderName = "";
@@ -247,7 +258,7 @@ function buildFullHistoryCsv(allData) {
   return [header, ...body].map((row) => row.map(csvEscape).join(",")).join("\n");
 }
 
-exportJsonButton.addEventListener("click", async () => {
+onClick(exportJsonButton, async () => {
   if (!currentUser) {
     return;
   }
@@ -271,7 +282,7 @@ exportJsonButton.addEventListener("click", async () => {
   }
 });
 
-exportCsvButton.addEventListener("click", async () => {
+onClick(exportCsvButton, async () => {
   if (!currentUser) {
     return;
   }
@@ -293,13 +304,16 @@ exportCsvButton.addEventListener("click", async () => {
 // ---- Theme toggle ----
 
 function refreshThemeUI() {
+  if (!themeSwitch || !themeLabel) {
+    return;
+  }
   const isLight = document.body.classList.contains("theme-light");
   themeSwitch.classList.toggle("on", isLight);
   themeSwitch.setAttribute("aria-checked", String(isLight));
   themeLabel.textContent = isLight ? "Light" : "Dark";
 }
 
-themeSwitch.addEventListener("click", () => {
+onClick(themeSwitch, () => {
   const nextTheme = document.body.classList.contains("theme-light") ? "dark" : "light";
   setStoredTheme(nextTheme);
   refreshThemeUI();
@@ -309,20 +323,26 @@ refreshThemeUI();
 
 // ---- Default block hours ----
 
-defaultHoursQuickRow.querySelectorAll(".hours-quick-btn").forEach((button) => {
-  button.addEventListener("click", () => {
-    defaultBlockHoursInput.value = button.dataset.hours;
-    defaultHoursQuickRow.querySelectorAll(".hours-quick-btn").forEach((btn) => btn.classList.toggle("active", btn === button));
+if (defaultHoursQuickRow) {
+  defaultHoursQuickRow.querySelectorAll(".hours-quick-btn").forEach((button) => {
+    button.addEventListener("click", () => {
+      defaultBlockHoursInput.value = button.dataset.hours;
+      defaultHoursQuickRow.querySelectorAll(".hours-quick-btn").forEach((btn) => btn.classList.toggle("active", btn === button));
+    });
   });
-});
+}
 
-defaultBlockHoursInput.addEventListener("input", () => {
-  defaultHoursQuickRow.querySelectorAll(".hours-quick-btn").forEach((btn) => {
-    btn.classList.toggle("active", Number(btn.dataset.hours) === Number(defaultBlockHoursInput.value));
+if (defaultBlockHoursInput) {
+  defaultBlockHoursInput.addEventListener("input", () => {
+    if (defaultHoursQuickRow) {
+      defaultHoursQuickRow.querySelectorAll(".hours-quick-btn").forEach((btn) => {
+        btn.classList.toggle("active", Number(btn.dataset.hours) === Number(defaultBlockHoursInput.value));
+      });
+    }
   });
-});
+}
 
-saveDefaultHoursButton.addEventListener("click", async () => {
+onClick(saveDefaultHoursButton, async () => {
   if (!currentUser) {
     return;
   }
@@ -350,7 +370,7 @@ saveDefaultHoursButton.addEventListener("click", async () => {
 
 // ---- Change email ----
 
-changeEmailButton.addEventListener("click", async () => {
+onClick(changeEmailButton, async () => {
   if (!currentUser) {
     return;
   }
@@ -378,7 +398,7 @@ changeEmailButton.addEventListener("click", async () => {
 
 // ---- Clear all data ----
 
-clearDataButton.addEventListener("click", async () => {
+onClick(clearDataButton, async () => {
   if (!currentUser) {
     return;
   }
