@@ -68,6 +68,7 @@ alter table shift_entries add column if not exists block_start_time text;
 alter table shift_entries add column if not exists block_hours numeric;
 alter table shift_entries add column if not exists block_end_time text;
 alter table shift_entries add column if not exists actual_end_time text;
+alter table rider_profiles add column if not exists default_block_hours numeric;
 ```
 
 End Shift now pulls in the matching open shift automatically (no need to re-type the date/platform to find it): it prefills the date, start km, and expected pay from what you entered on Start Shift, and all three stay editable in case something needs correcting. It also asks for the **actual shift end time** — this is the real end time you record, separate from the estimated end time shown on Start Shift. If pay wasn't filled in when the shift started, filling it in here logs the income entry automatically.
@@ -75,6 +76,15 @@ End Shift now pulls in the matching open shift automatically (no need to re-type
 ## No PIN Gate
 
 The soft PIN gate has been removed entirely. Access control is Supabase Auth (owner-created accounts only) plus Row Level Security — there's no PIN to keep in sync anymore.
+
+## Settings Page
+
+- **Editable rider name** and a **change email** flow (sends a confirmation link to the new address before it takes effect).
+- **Appearance**: a light/dark theme toggle, stored locally in the browser (`localStorage`), applied instantly with no flash on load.
+- **Default block hours**: pre-fills the Start Shift form's block-hours field so you don't have to pick it every time. Stored per-rider in `rider_profiles.default_block_hours`.
+- **Your stats**: closed shift count, total kilometres, member-since date.
+- **Export your data**: full JSON backup or full-history CSV, covering every table.
+- **Clear all my data**: permanently deletes every shift/income/fuel/repair row for your account (requires typing "DELETE" to confirm). This does not delete your Supabase Auth login itself — for that, the app owner needs to remove it from the Supabase dashboard.
 
 ## Edit Rider Names
 

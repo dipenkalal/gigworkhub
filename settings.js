@@ -16,6 +16,21 @@ const exportJsonButton = document.getElementById("export-json-button");
 const exportCsvButton = document.getElementById("export-csv-button");
 const exportStatus = document.getElementById("export-status");
 
+const themeSwitch = document.getElementById("theme-switch");
+const themeLabel = document.getElementById("theme-label");
+
+const defaultHoursQuickRow = document.getElementById("default-hours-quick-row");
+const defaultBlockHoursInput = document.getElementById("default-block-hours-input");
+const saveDefaultHoursButton = document.getElementById("save-default-hours-button");
+const defaultHoursStatus = document.getElementById("default-hours-status");
+
+const newEmailInput = document.getElementById("settings-new-email-input");
+const changeEmailButton = document.getElementById("change-email-button");
+const changeEmailStatus = document.getElementById("change-email-status");
+
+const clearDataButton = document.getElementById("clear-data-button");
+const clearDataStatus = document.getElementById("clear-data-status");
+
 async function loadSettings() {
   if (!currentUser) {
     return;
@@ -23,6 +38,13 @@ async function loadSettings() {
 
   settingsRiderNameInput.value = currentRiderName || "";
   settingsEmail.textContent = currentUser.email || "--";
+
+  if (currentDefaultBlockHours !== null && currentDefaultBlockHours !== undefined) {
+    defaultBlockHoursInput.value = currentDefaultBlockHours;
+    defaultHoursQuickRow.querySelectorAll(".hours-quick-btn").forEach((button) => {
+      button.classList.toggle("active", Number(button.dataset.hours) === Number(currentDefaultBlockHours));
+    });
+  }
 
   await loadStats();
 }
@@ -265,6 +287,123 @@ exportCsvButton.addEventListener("click", async () => {
     exportStatus.textContent = error.message || "Could not export data.";
   } finally {
     exportCsvButton.disabled = false;
+  }
+});
+
+// ---- Theme toggle ----
+
+function refreshThemeUI() {
+  const isLight = document.body.classList.contains("theme-light");
+  themeSwitch.classList.toggle("on", isLight);
+  themeSwitch.setAttribute("aria-checked", String(isLight));
+  themeLabel.textContent = isLight ? "Light" : "Dark";
+}
+
+themeSwitch.addEventListener("click", () => {
+  const nextTheme = document.body.classList.contains("theme-light") ? "dark" : "light";
+  setStoredTheme(nextTheme);
+  refreshThemeUI();
+});
+
+refreshThemeUI();
+
+// ---- Default block hours ----
+
+defaultHoursQuickRow.querySelectorAll(".hours-quick-btn").forEach((button) => {
+  button.addEventListener("click", () => {
+    defaultBlockHoursInput.value = button.dataset.hours;
+    defaultHoursQuickRow.querySelectorAll(".hours-quick-btn").forEach((btn) => btn.classList.toggle("active", btn === button));
+  });
+});
+
+defaultBlockHoursInput.addEventListener("input", () => {
+  defaultHoursQuickRow.querySelectorAll(".hours-quick-btn").forEach((btn) => {
+    btn.classList.toggle("active", Number(btn.dataset.hours) === Number(defaultBlockHoursInput.value));
+  });
+});
+
+saveDefaultHoursButton.addEventListener("click", async () => {
+  if (!currentUser) {
+    return;
+  }
+
+  const hoursValue = defaultBlockHoursInput.value ? Number(defaultBlockHoursInput.value) : null;
+
+  saveDefaultHoursButton.disabled = true;
+  defaultHoursStatus.textContent = "Saving...";
+
+  try {
+    const { error } = await supabaseClient
+      .from("rider_profiles")
+      .upsert({ user_id: currentUser.id, default_block_hours: hoursValue });
+
+    if (error) throw error;
+
+    currentDefaultBlockHours = hoursValue;
+    defaultHoursStatus.textContent = "Saved.";
+  } catch (error) {
+    defaultHoursStatus.textContent = error.message || "Could not save default.";
+  } finally {
+    saveDefaultHoursButton.disabled = false;
+  }
+});
+
+// ---- Change email ----
+
+changeEmailButton.addEventListener("click", async () => {
+  if (!currentUser) {
+    return;
+  }
+
+  const newEmail = newEmailInput.value.trim();
+  if (!newEmail) {
+    changeEmailStatus.textContent = "Enter a new email first.";
+    return;
+  }
+
+  changeEmailButton.disabled = true;
+  changeEmailStatus.textContent = "Sending confirmation...";
+
+  try {
+    const { error } = await supabaseClient.auth.updateUser({ email: newEmail });
+    if (error) throw error;
+    changeEmailStatus.textContent = `Confirmation link sent to ${newEmail}. Your login email updates once you confirm it.`;
+    newEmailInput.value = "";
+  } catch (error) {
+    changeEmailStatus.textContent = error.message || "Could not update email.";
+  } finally {
+    changeEmailButton.disabled = false;
+  }
+});
+
+// ---- Clear all data ----
+
+clearDataButton.addEventListener("click", async () => {
+  if (!currentUser) {
+    return;
+  }
+
+  const confirmation = window.prompt('This permanently deletes every shift, income, fuel, and repair entry you\'ve logged. Type "DELETE" to confirm.');
+  if (confirmation !== "DELETE") {
+    clearDataStatus.textContent = confirmation === null ? "" : 'Cancelled \u2014 you must type "DELETE" exactly.';
+    return;
+  }
+
+  clearDataButton.disabled = true;
+  clearDataStatus.textContent = "Deleting...";
+
+  try {
+    const tables = ["shift_entries", "income_entries", "fuel_entries", "repair_entries"];
+    for (const table of tables) {
+      const { error } = await supabaseClient.from(table).delete().eq("user_id", currentUser.id);
+      if (error) throw error;
+    }
+    clearDataStatus.textContent = "All your logged data has been deleted.";
+    await loadStats();
+  } catch (error) {
+    clearDataStatus.textContent = error.message || "Could not delete all data.";
+  } finally {
+    clearDataButton.disabled = false;
   }
 });
 
