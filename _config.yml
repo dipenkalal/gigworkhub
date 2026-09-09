@@ -1,0 +1,4 @@
+exclude:
+  - archive
+  - docs
+  - README.md

@@ -1,29 +1,34 @@
-# Dipen — Selected Cloud & DevOps Work
+# Dipen Kalal — Cloud & DevOps portfolio
 
-This repository publishes [dipen.site](https://dipen.site), Dipen Kalal's selected engineering portfolio.
+Source for [dipen.site](https://dipen.site). A curated six-phase journey through AWS foundations, Terraform, serverless applications, delivery pipelines, disaster recovery, and the Dipen AI Platform (DAP).
 
-The portfolio is organized into six project phases:
+## Repository structure
 
-1. AWS foundations — console-based three-tier architecture
-2. Infrastructure as code — Terraform, multi-AZ networking, ALB, Auto Scaling and RDS
-3. Serverless applications — S3, CloudFront, API Gateway, Lambda and DynamoDB
-4. Delivery and GitOps — Jenkins, Docker, ECR, EKS and rollout validation
-5. Disaster recovery — cross-region replication, Route 53 failover and monitoring
-6. DAP — a self-hosted AI and automation platform built on an Ubuntu homelab
+- `index.html`: accessible portfolio content and six case studies.
+- `assets/css/portfolio.css`: responsive layout, typography and reduced-motion-aware animation.
+- `assets/js/portfolio.js`: phase selection, URL history and Background controls.
+- `assets/icons/favicon.svg`: portfolio tab icon. Navigation icons are inline SVG.
+- `CNAME`: GitHub Pages domain.
+- `robots.txt`: public portfolio indexing policy.
+- `_config.yml`: excludes the archived application from GitHub Pages.
+- `service-worker.js`: retirement worker for the previous logbook cache.
+- `archive/gig-work-hub/`: preserved original application snapshot; not part of the portfolio.
+- `docs/`: maintenance and migration notes.
 
-## Portfolio files
+## Run locally
 
-- `index.html` — the GitHub Pages entrypoint
-- `portfolio.css` — portfolio layout and responsive styling
-- `portfolio.js` — six-phase navigation and Background panel controls
-- `CNAME` — the custom domain `dipen.site`
-- `robots.txt` — permits indexing of the public portfolio
-- `manifest.json` — portfolio metadata for installable browser experiences
+From the repository root run `python3 -m http.server 8000`, then open http://localhost:8000. No build step or frontend dependencies are required. Fonts use Google Fonts with system fallbacks.
 
-The project links to the relevant source repositories for each case study. It intentionally does not import or display forked repositories.
+## Maintain content
 
-## Evidence and scope
+Edit the six articles in index.html. Retain phase IDs phase-01 through phase-06 so deep links and navigation work. Add only relevant original work. Keep claims grounded in source repositories or owner-supplied records. The Qwen tests used different completion lengths and are not a like-for-like speed benchmark.
 
-Project summaries use repository documentation retrieved from github.com/dipenkalal and owner-provided DAP release and investigation records. DAP release checks are historical records from September 4, 2026. The Qwen timing section distinguishes bounded-request validation from an equivalent-workload performance benchmark. Disaster recovery recovery time and recovery point objectives are not benchmarked.
+## Deployment
 
-The earlier Gig Work Hub application files remain in this repository history and working tree for preservation. They are not loaded by the portfolio entrypoint.
+GitHub Pages publishes main from the repository root using Jekyll. Keep CNAME set to dipen.site. The archive is excluded by _config.yml. No Supabase connection is used by the portfolio.
+
+Before publishing, check JavaScript syntax with `node --check assets/js/portfolio.js`, asset paths, all six phases, browser back/forward, Background close, keyboard focus and mobile layout. Check animation with reduced motion enabled.
+
+## Project status
+
+DAP v2.1 and v2.2 investigation descriptions are based on owner-provided records; v2.2 validation does not mean v2.2 has been released. Disaster recovery timings have not been benchmarked.

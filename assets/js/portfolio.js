@@ -8,3 +8,6 @@ window.addEventListener('hashchange',selectPhase);window.addEventListener('popst
 const background=document.querySelector('.background');
 const closeBackground=document.querySelector('.close-background');
 closeBackground.addEventListener('click',()=>{background.open=false;const summary=background.querySelector('summary');summary.focus({preventScroll:true});summary.scrollIntoView({block:'nearest',behavior:'auto'});});
+
+// Move visitors from hero links to the selected case study.
+document.querySelectorAll('.hero-actions a, .featured').forEach(a=>a.addEventListener('click',event=>{event.preventDefault();history.pushState(null,'',a.hash);selectPhase();document.querySelector('#work').scrollIntoView({block:'start',behavior:matchMedia('(prefers-reduced-motion: reduce)').matches?'auto':'smooth'});}));

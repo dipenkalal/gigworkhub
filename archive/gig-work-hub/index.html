@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#0d1013" />
+  <meta name="robots" content="noindex, nofollow" />
+  <meta name="description" content="Gig Work Hub helps delivery riders and gig drivers log shifts, kilometres, expenses, and income for CRA-ready records." />
+  <title>Gig Work Hub | Dashboard</title>
+  <link rel="manifest" href="manifest.json" />
+  <link rel="apple-touch-icon" href="apple-touch-icon.png" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="Gig Work Hub" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body data-page="dashboard">
+  <section class="auth-gate" id="auth-gate">
+    <div class="auth-card">
+      <span class="brand-mark">GW</span>
+      <h1>Log in once.<br>Ride daily.</h1>
+      <p>This app is private. Accounts are created by the owner only — there is no public sign-up.</p>
+      <form class="auth-form" id="auth-form">
+        <div class="field">
+          <label for="auth-email">Email</label>
+          <input id="auth-email" name="email" type="email" autocomplete="email" required>
+        </div>
+        <div class="field">
+          <label for="auth-password">Password</label>
+          <input id="auth-password" name="password" type="password" autocomplete="current-password" required minlength="6">
+        </div>
+        <button class="submit-button" type="submit" id="auth-submit">Login</button>
+        <span class="auth-status" id="auth-status">Use the same phone browser and you should stay logged in.</span>
+      </form>
+    </div>
+  </section>
+
+  <main class="app" id="app" hidden>
+    <div class="app-shell">
+      <nav class="app-sidebar" aria-label="Primary">
+        <a class="site-nav-brand" href="index.html">
+          <span class="mark">GW</span>
+          <strong>Gig Work Hub</strong>
+        </a>
+        <div class="app-sidebar-links">
+          <a class="nav-link" href="index.html" data-nav="dashboard"><span class="nav-icon" aria-hidden="true">&#8962;</span>Dashboard</a>
+          <a class="nav-link" href="history.html" data-nav="history"><span class="nav-icon" aria-hidden="true">&#9776;</span>History</a>
+          <a class="nav-link" href="tax-summary.html" data-nav="tax"><span class="nav-icon" aria-hidden="true">$</span>Tax Summary</a>
+          <a class="nav-link" href="settings.html" data-nav="settings"><span class="nav-icon" aria-hidden="true">&#9881;</span>Settings</a>
+        </div>
+      </nav>
+
+      <div class="app-main">
+        <div class="account-bar" id="account-bar">
+        <span class="account-profile">
+          <span class="account-avatar" id="account-avatar" aria-hidden="true">GW</span>
+          <span id="account-label">Logged in</span>
+        </span>
+        <button class="logout-button" type="button" id="logout-button">Logout</button>
+      </div>
+
+      <section class="hero" aria-labelledby="hero-title">
+        <div>
+          <div class="date" id="today-date">Today</div>
+          <h1 id="hero-title">Ride today. <span>Claim it later.</span></h1>
+          <p>Fast daily logging for delivery riders, couriers, and app drivers. Track kilometres, fuel, repairs, and platform income in records built for tax season.</p>
+        </div>
+
+        <div class="ride-strip" aria-label="Rider dashboard preview">
+          <div class="road">
+            <div class="rider" aria-hidden="true">
+              <span class="frame"></span>
+              <span class="box"></span>
+            </div>
+          </div>
+          <div class="stats">
+            <div class="stat">
+              <strong id="total-km">0 km</strong>
+              <span>completed kilometres</span>
+            </div>
+            <div class="stat">
+              <strong id="total-earnings">$0</strong>
+              <span>income and tips</span>
+            </div>
+            <div class="stat">
+              <strong id="total-shifts">0</strong>
+              <span>closed shifts</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="section" aria-labelledby="shift-title">
+        <h2 class="section-title" id="shift-title">Start or finish a ride</h2>
+        <div class="grid">
+          <button class="action-card" type="button" data-entry="start_shift">
+            <span class="card-icon">GO</span>
+            <span class="card-title">Start Shift</span>
+            <span class="card-copy">Capture your starting odometer before the first delivery.</span>
+          </button>
+
+          <button class="action-card" type="button" data-entry="end_shift">
+            <span class="card-icon finish">END</span>
+            <span class="card-title">End Shift</span>
+            <span class="card-copy">Close the route with final kilometres and shift notes.</span>
+          </button>
+        </div>
+      </section>
+
+      <section class="section" aria-labelledby="money-title">
+        <h2 class="section-title" id="money-title">Log rider costs and income</h2>
+        <div class="grid">
+          <button class="action-card" type="button" data-entry="fuel">
+            <span class="card-icon fuel">L</span>
+            <span class="card-title">Fuel</span>
+            <span class="card-copy">Record litres, price, receipt, and odometer.</span>
+          </button>
+
+          <button class="action-card" type="button" data-entry="repair">
+            <span class="card-icon repair">R</span>
+            <span class="card-title">Repairs</span>
+            <span class="card-copy">Track tires, oil, brake work, gear, and service.</span>
+          </button>
+
+          <button class="action-card wide" type="button" data-entry="income">
+            <span class="card-icon income">PAY</span>
+            <span>
+              <span class="card-title">Platform Income</span>
+              <span class="card-copy">Add Amazon Flex payouts and tips.</span>
+            </span>
+          </button>
+        </div>
+      </section>
+
+      <section class="section" aria-labelledby="recent-title">
+        <h2 class="section-title" id="recent-title">Recent shifts</h2>
+        <div class="shift-list cards" id="shift-list">
+          <p class="shift-empty">No shifts logged yet. Start one above.</p>
+        </div>
+      </section>
+
+      <section class="cra-panel" aria-labelledby="cra-title">
+        <h2 id="cra-title">Built for CRA-ready habits</h2>
+        <p>Every tap sends structured details to Supabase so kilometres, expenses, and income stay organized by rider throughout the year.</p>
+        <ul class="checklist">
+          <li>Separate business kilometres from personal driving.</li>
+          <li>Keep fuel, maintenance, and platform income in one trail.</li>
+          <li>Make monthly review easier before tax season arrives.</li>
+        </ul>
+        <a class="tax-summary-button" href="tax-summary.html" style="display:block;text-align:center;text-decoration:none;">View yearly tax summary</a>
+      </section>
+
+      <footer>
+        <span>Auto-saves to your Supabase database</span>
+        <span>Gig Work Hub 2026</span>
+      </footer>
+      </div>
+    </div>
+  </main>
+
+  <nav class="app-tabbar" aria-label="Primary">
+    <a class="nav-link" href="index.html" data-nav="dashboard"><span class="tab-icon" aria-hidden="true">&#8962;</span><span>Dashboard</span></a>
+    <a class="nav-link" href="history.html" data-nav="history"><span class="tab-icon" aria-hidden="true">&#9776;</span><span>History</span></a>
+    <a class="nav-link" href="tax-summary.html" data-nav="tax"><span class="tab-icon" aria-hidden="true">$</span><span>Tax</span></a>
+    <a class="nav-link" href="settings.html" data-nav="settings"><span class="tab-icon" aria-hidden="true">&#9881;</span><span>Settings</span></a>
+  </nav>
+
+  <div class="modal" id="entry-modal" aria-hidden="true">
+    <div class="modal-panel" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+      <div class="modal-head">
+        <h2 id="modal-title">New entry</h2>
+        <button class="close-button" type="button" data-close aria-label="Close form">&times;</button>
+      </div>
+      <form class="entry-form" id="entry-form">
+        <input type="hidden" name="entry_type" id="entry-type">
+        <div class="form-grid" id="form-fields"></div>
+        <div class="submit-row">
+          <button class="submit-button" type="submit">Save entry</button>
+          <span class="form-status" id="form-status">Ready to log.</span>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="app-core.js"></script>
+  <script src="dashboard.js"></script>
+</body>
+</html>
