@@ -48,3 +48,6 @@ body{background:#f4f6fb}header{max-width:none;padding-left:max(32px,calc((100vw 
 @media(max-width:1000px){.intro{gap:25px}.platform-explorer{padding:20px}.evolution-track{grid-template-columns:repeat(3,minmax(0,1fr))}.platform-network button{padding:12px}.explorer-header{letter-spacing:.03em}}
 @media(max-width:720px){header{padding:20px}.intro:before{inset:0 -20px}.intro{padding-top:35px;padding-bottom:35px}.intro h1{font-size:clamp(3rem,12vw,4.4rem)}.platform-explorer{padding:20px}.network-branches{gap:10px}.platform-network button strong{font-size:.9rem}.journey-evolution{padding:22px 18px}.journey-evolution h3{font-size:1.4rem}.evolution-track a{padding:13px 8px}.evolution-track strong{font-size:.8rem}.debug-story{padding:18px}.debug-tabs{grid-template-columns:1fr 1fr}.debug-panel{min-height:0}.debug-navigation{gap:8px}.debug-navigation button{padding:12px 9px}.experience{padding-top:40px}}
 @media(prefers-reduced-motion:reduce){.network-link,.debug-panel,#component-detail{animation:none!important}}
+
+/* Extend hero paint without creating scrollable overflow. */
+.intro::before{inset:0;box-shadow:0 0 0 100vmax #101324;clip-path:inset(0 -100vmax)}
